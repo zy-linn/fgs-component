@@ -37,8 +37,8 @@ export const INPUTS: InputProps = {
         },
     },
     credentials: {
-        AccessKeyID: "UJIDQHOIUYMLG4L62G1A",
-        SecretAccessKey: "OrjFSm80786V5soxDcXr5tyzDexxt41EmTS7IfjD",
+        AccessKeyID: "",
+        SecretAccessKey: "",
     },
     appName: "startFgHttpNodejs8",
     project: {
