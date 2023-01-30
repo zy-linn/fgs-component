@@ -2,10 +2,9 @@ import { InputProps } from "../../src/common/entity";
 
 export const INPUTS: InputProps = {
     props: {
-        projectId: "09f7170b2c800f5a2fe2c00706fd11dc",
         region: "cn-east-3",
         function: {
-            functionName: "zyltest-devs",
+            functionName: "devs",
             handler: "index.handler",
             memorySize: 128,
             timeout: 30,
@@ -13,7 +12,7 @@ export const INPUTS: InputProps = {
             package: "default",
             codeType: "zip",
             code: {
-                codeUri: "D:/TEST/serverless/new/zyl-fgs-http-nodejs/code",
+                codeUri: "../../example/code",
             },
         },
         trigger: {
