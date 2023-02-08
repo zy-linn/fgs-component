@@ -8,10 +8,10 @@
 #   - [社区讨论 #439](https://github.com/Serverless-Devs/Serverless-Devs/discussions/439);
 
 Type: Component
-Name: zylfgs
+Name: fgs
 Provider:
   - 华为云
-Version: 0.0.3
+Version: 0.0.4
 Description: 简短的描述/介绍
 HomePage: 项目首页地址
 Tags: #标签详情
