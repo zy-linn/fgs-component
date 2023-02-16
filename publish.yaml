@@ -1,0 +1,92 @@
+# 规范文档参考:
+# 中文：https://github.com/Serverless-Devs/Serverless-Devs/blob/master/spec/zh/0.0.2/serverless_package_model/3.package_model.md#组件模型规范
+# English: https://github.com/Serverless-Devs/Serverless-Devs/blob/master/spec/en/0.0.2/serverless_package_model/3.package_model.md#Component-model-specification
+# --------------
+# Package 开发发布最佳实践:
+#   - [社区讨论 #62](https://github.com/Serverless-Devs/Serverless-Devs/discussions/62);
+#   - [社区讨论 #407](https://github.com/Serverless-Devs/Serverless-Devs/discussions/407);
+#   - [社区讨论 #439](https://github.com/Serverless-Devs/Serverless-Devs/discussions/439);
+
+Type: Component
+Name: fgs
+Provider:
+  - 华为云
+Version: 0.0.4
+Description: 简短的描述/介绍
+HomePage: 项目首页地址
+Tags: #标签详情
+  - 部署函数
+  - 部署组件
+Category: 基础云服务 # 基础云服务/Web框架/全栈应用/人工智能/音视频处理/图文处理/监控告警/大数据/IoT/新手入门/其它/开源项目
+Service: # 使用的服务
+  函数计算: # 函数计算/容器服务/镜像服务/消息队列/工作流/CDN/对象存储/表格存储/MNS/日志服务/API网关/数据库/解析服务/云应用/其它
+    # Runtime: Python 3.6 如果服务是函数，还需要增加Runtime
+    Authorities: #权限描述
+      - 创建函数 # 所需要的权限
+Commands: # 指令，格式为指令：指令描述，例如：
+  deploy: 部署函数
+  remove: 删除函数
+Properties:
+  type: object
+  additionalProperties: false
+  properties:
+    region:
+      description: 区域
+      default: cn-north-4
+      required: true
+      type:
+        - String
+    function:
+      functionName:
+        description: 函数名
+        required: true
+        type:
+          - String
+      description:
+        description: 函数描述
+        requeired: false
+        default: serverless-devs函数应用
+        type:
+          - String
+      handler:
+        description: 处理程序
+        required: true
+        type:
+          - String
+      memorySize:
+        description: 内存
+        required: true
+        default: 128
+        type:
+          - Number
+      timeout:
+        description: 超时时间
+        required: true
+        default: 30
+        type:
+          - Number
+      runtime:
+        description: 运行环境
+        required: true
+        type:
+          - String
+      package:
+        description: 应用
+        required: false
+        default: default
+        type:
+          - String
+      codeType:
+        description: 代码类型
+        required: true
+        default: zip
+        type:
+          - Enum:
+              - ZIP
+      code:
+        codeUri:
+          description: 代码地址
+          required: true
+          default: ./code
+          type:
+            - String
