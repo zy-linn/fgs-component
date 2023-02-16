@@ -5,5 +5,6 @@
 # 快速开始
 ❶ [安装 Serverless Devs 开发者工具](https://github.com/Serverless-Devs/Serverless-Devs/blob/master/docs/zh/install.md) ：`npm install -g @serverless-devs/s`； 
 
-❷ 初始化一个函数计算的 `Hello World` 项目：`s init start-fg-http-nodejs14`；
+❷ 初始化一个函数计算的 `Hello World` 项目：`s init start-fg-http-nodejs14`； 
+
 ❸ 初始化完成之后，进入项目，执行 `s deploy` 部署函数；
