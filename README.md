@@ -1,6 +1,6 @@
 # 华为云函数计算（FG）组件
 ## 组件说明
-是一个用于支持百度云函数应用生性周期的工具，基于[Serverless Devs](https://www.serverless-devs.com/)进行开发，通过配置资源配置文件`s.yaml`，您可以简单快速地部署应用到[华为云函数计算平台](https://www.huaweicloud.com/product/functiongraph.html)。
+是一个用于支持华为云函数应用生性周期的工具，基于[Serverless Devs](https://www.serverless-devs.com/)进行开发，通过配置资源配置文件`s.yaml`，您可以简单快速地部署应用到[华为云函数计算平台](https://www.huaweicloud.com/product/functiongraph.html)。
 
 ## 前提
 先本地安装nodejs，具体按照流程可参考[安装Nodejs](https://zhuanlan.zhihu.com/p/442215189)
