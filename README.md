@@ -14,28 +14,12 @@
 ❸ 初始化完成之后，进入项目，执行 `s deploy` 部署函数；
 
 ## 指令使用方法
-### 1. 部署操作：Deploy
-通过编写s.yaml描述文档和s deploy命令，可以快速部署相关资源
 
-#### 1. s deploy
-用于部署所有资源，包括函数和触发器
+华为云函数计算（FG）组件全部支持的能力列表如下：
 
-#### 2. s deploy -h/s deploy help
-使用该命令可以唤起帮助信息
+| 构建&部署 | 发布&配置  |  其他功能 |
+| --- | --- | --- |--- | --- |
+| [**部署 deploy**](docs/zh/command/deploy.md)   |  [**版本 version**](docs/zh/command/version.md)      | [项目迁移 fun2s](docs/zh/command/fun2s.md) | 
+| [**删除 remove**](docs/zh/command/remove.md)   |  [**别名 alias**](docs/zh/command/alias.md)     |  | 
 
-#### 3. s deploy <sub-command>子命令
-- s deploy all：部署所有资源，效果等同于s deploy
-- s deploy function：仅部署函数
-- s deploy trigger：仅部署触发器
-
-### 2. 移除操作：Remove
-#### 1. s remove
-移除所有资源，包括函数和触发器 (对应资源已经在线上部署)
-
-#### 2. s remove -h/s remove help
-使用该命令可以唤起帮助信息
-
-#### 3. s deploy <sub-command>子命令
-- s deploy all：移除所有资源，效果等同于s remove
-- s deploy function：移除所有资源，效果等同于s remove
-- s deploy trigger：仅移除触发器
+在使用华为云函数计算（FG）组件时，还会涉及到资源描述文件的编写，关于华为云函数计算（FG）组件的 Yaml 规范可以参考[**华为云函数计算（FG） Yaml 规范文档**](docs/zh/yaml/readme.md)
