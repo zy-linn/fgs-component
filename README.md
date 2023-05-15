@@ -18,7 +18,7 @@
 华为云函数计算（FG）组件全部支持的能力列表如下：
 
 | 构建&部署 | 发布&配置  |  其他功能 |
-| --- | --- | --- |--- | --- |
+| --- | --- | --- |
 | [**部署 deploy**](docs/zh/command/deploy.md)   |  [**版本 version**](docs/zh/command/version.md)      | [项目迁移 fun2s](docs/zh/command/fun2s.md) | 
 | [**删除 remove**](docs/zh/command/remove.md)   |  [**别名 alias**](docs/zh/command/alias.md)     |  | 
 
