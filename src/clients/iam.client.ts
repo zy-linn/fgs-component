@@ -1,4 +1,4 @@
-import { ICredentials } from "../common/entity";
+import { ICredentials } from "../interface/interface";
 
 const core = require('@huaweicloud/huaweicloud-sdk-core');
 const iam = require("@huaweicloud/huaweicloud-sdk-iam");

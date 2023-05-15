@@ -1,9 +1,8 @@
-import { ICredentials } from "./entity";
 import logger from "./logger";
 import { commandParse, help } from "@serverless-devs/core";
 import * as deloyHelp from "../help/deploy";
 import * as removeHelp from '../help/remove';
-import { CommandType, IInputs, MethodType } from "../interface/interface";
+import { CommandType, ICredentials, IInputs, MethodType } from "../interface/interface";
 import { IamClient } from "../clients/iam.client";
 import { FunctionClient } from "../clients/function.client";
 

@@ -31,8 +31,8 @@ export class ApigClient {
     * @param {*} [options] Override http request option.
     * @throws {RequiredError}
     */
-    public createApiGroup(): Promise<any> {
-        const name = `API_Group_${randomLenChar(6)}`;
+    public createApiGroup(groupName = ''): Promise<any> {
+        const name = groupName ?? `API_Group_${randomLenChar(6)}`;
         const options = ParamCreater().createApiGroup(name, 'Serverless Devs');
 
         // @ts-ignore

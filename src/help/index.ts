@@ -1,6 +1,6 @@
 export const COMPONENT_HELP_INFO = [
     {
-        header: "fg component",
+        header: "fgs component",
         content:
             "You can use the component to manager and develop your baiducloud function computer resources.",
     },
@@ -30,9 +30,9 @@ export const COMPONENT_HELP_INFO = [
     {
         header: "Examples with Yaml",
         content: [
-            "$ fg {bold deploy} --help",
-            "$ fg {bold remove} --help",
-            "$ fg {bold help}",
+            "$ fgs {bold deploy} --help",
+            "$ fgs {bold remove} --help",
+            "$ fgs {bold help}",
         ],
     },
 ];

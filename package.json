@@ -30,7 +30,11 @@
     "@huaweicloud/huaweicloud-sdk-functiongraph": "^3.1.18",
     "@huaweicloud/huaweicloud-sdk-iam": "^3.1.18",
     "@serverless-devs/core": "^0.1.48",
-    "compressing": "^1.6.3"
+    "compressing": "^1.6.3",
+    "esdk-obs-nodejs": "^3.21.6",
+    "inquirer": "^8.2.2",
+    "js-yaml": "^4.1.0",
+    "tty-table": "^4.2.1"
   },
   "devDependencies": {
     "@types/node": "^14.0.23",

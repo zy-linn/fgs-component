@@ -8,82 +8,95 @@ import {
     ListFunctionTriggersRequest,
     UpdateTriggerRequest,
     UpdateTriggerRequestBody,
-    UpdateTriggerRequestTriggerTypeCodeEnum,
+    UpdateTriggerRequestTriggerTypeCodeEnum
 } from "@huaweicloud/huaweicloud-sdk-functiongraph";
-import { setState, getState } from '@serverless-devs/core';
-import logger from "../common/logger";
-import { IEventData, ITrigger } from "../interface/interface";
-import { isString, randomLenChar } from "../utils/util";
+import { spinner } from '@serverless-devs/core';
 import { ApigClient } from "../clients/apig.client";
 import { FunctionClient } from "../clients/function.client";
+import { IApigProps, IEventData, IObsProps, ITimerProps, ITriggerProps, ITriggerResult, TypeCode } from "../interface/trigger.interface";
+import { handlerResponse, isString, promptForConfirmOrDetails, randomLenChar, tableShow } from "../utils/util";
+import logger from "../common/logger";
+import { IProperties, IRemoveProps } from "../interface/interface";
 
 export class TriggerService {
-    private triggerType: Trigger;
-    private logMap = {
-        create: {
-            success: `Trigger {name} is created successfully.`,
-            failed: `Failed to create {name} trigger.`
-        },
-        delete: {
-            success: `Trigger is deleted successfully.`,
-            failed: `Failed to delete {name} trigger.`
-        },
+    private spin = spinner();
+    private triggerInsMap = {
+        [TypeCode.APIG]: (client, props, funcName) => new ApigTrigger(client, props, funcName),
+        [TypeCode.OBS]: (client, props, funcName) => new ObsTrigger(client, props, funcName),
+        [TypeCode.TIMER]: (client, props, funcName) => new TimerTrigger(client, props, funcName),
     };
-    constructor(
-        public readonly client: FunctionClient,
-        public readonly props: any = {},
-        public readonly functionUrn,
-        public readonly spin: any
-    ) {
-        this.triggerType = this.getType();
-    }
+    private triggerType: Trigger;
+
+    private supportList = ['APIG', 'OBS', 'TIMER'];
+
+    private supportEditList = ['TIMER'];
 
     /**
      * 部署触发器
-     * 1. 判断触发器是否存在
-     * 2. 如果存在且状态不一致，更新触发器状态，如果状态一致，触发器没有更新，直接返回结果
-     * 3. 如果不存在，创建触发器
+     * @param props 
+     * @param client 
      * @returns 
      */
-    async deploy() {
-        this.spin.info(`Start deploy ${this.triggerType.getType()} trigger.`);
+    public async deploy(props: IProperties, client: FunctionClient) {
+        if (!props?.trigger) {
+            throw new Error('请先在s.yml中配置触发器信息');
+        }
+        if (!this.supportList.includes(props.trigger.triggerTypeCode)) {
+            throw new Error('当前只支持APIG、OBS、TIMER类型的触发器，请重新配置');
+        }
+        const triggerType = props.trigger.triggerTypeCode as TypeCode;
+        this.triggerType = this.triggerInsMap[triggerType](client, props.trigger, props.function.functionName);
         try {
-            const trigger = await this.getTrigger();
+            const trigger: ITriggerResult = await this.getTrigger(client, props.urn, triggerType, this.triggerType.getTriggerName());
             if (trigger) {
-                if (trigger.trigger_status !== this.triggerType.getStatus()) {
-                    return this.update(trigger.trigger_id);
+                if (this.supportEditList.includes(trigger.trigger_type_code)
+                    && trigger.trigger_status !== this.triggerType.triggerStatus) {
+                    return this.update(client, trigger.trigger_id, props.urn);
                 }
                 return this.handleResponse(trigger);
-            } else {
-                return this.create();
             }
+            return this.create(client, props.urn);
         } catch (error) {
             throw error;
+        } finally {
+            this.spin.stop();
         }
     }
 
     /**
      * 删除触发器
-     * 1. 先判断触发器是否存在
-     * 2. 不存在，直接抛出异常
-     * 3. 存在的话，删除触发器
-     * @returns 
+     * @param param0 
+     * @param client 
      */
-    async remove() {
-        const triggerType = this.triggerType.getType();
-        this.spin.info(`Start delete ${triggerType} trigger.`);
+    public async remove({ isYml, triggerName, triggerType, triggerInfo, urn, functionName, version }: IRemoveProps, client: FunctionClient) {
+        if (!isYml && !triggerType) {
+            throw new Error('Trigger type is required. Please specify with --trigger-type');
+        }
+        if (!isYml && !triggerName) {
+            throw new Error('Trigger name is required. Please specify with --trigger-name');
+        }
+
+        if (isYml && !triggerInfo) {
+            throw new Error('请先在s.yml中配置触发器信息');
+        }
         try {
-            const trigger = await this.getTrigger();
-            if (!trigger) { // 触发器
-                const msg = `${this.logMap.delete.failed.replace('{name}', triggerType)} The trigger does not exist.`;
-                this.spin.fail(msg);
-                logger.error(msg);
-                throw new Error(msg);
+            this.spin.info(`开始删除触发器.`);
+            logger.debug(`开始删除触发器.`);
+            const type = triggerType ? triggerType : triggerInfo?.triggerTypeCode;
+            const funcUrn = version ? `${urn}:${version}` : `${urn}:latest`;
+            this.triggerType = this.triggerInsMap[type](client, { ...triggerInfo, triggerTypeCode: type }, functionName);
+            const trigger: ITriggerResult = await this.getTrigger(client, funcUrn, type, triggerName);
+            if (!trigger) {
+                throw new Error('The trigger does not exist');
             }
-            const request = this.triggerType.getDeleteRequest(trigger.trigger_id);
-            const result = await this.client.getFunctionClient().deleteFunctionTrigger(request);
-            return this.handerResult(result, this.logMap.delete);
+
+            const request = this.triggerType.getDeleteRequest(trigger.trigger_id, funcUrn);
+            const result: any = await client.getFunctionClient().deleteFunctionTrigger(request);
+            handlerResponse(result);
+            this.spin.succeed(`触发器删除成功.`);
         } catch (error) {
+            this.spin.fail(`触发器删除失败.`);
+            logger.error(`触发器删除失败. err=${(error as Error).message}`);
             throw error;
         }
     }
@@ -92,12 +105,19 @@ export class TriggerService {
      * 创建触发器
      * @returns 
      */
-    private async create() {
-        const request = await this.triggerType.getCreateRequest();
-        const result = await this.client.getFunctionClient().createFunctionTrigger(request);
-        const response = this.handerResult(result, this.logMap.create);
-        await setState('triggerInfo', response.trigger_id);
-        return this.handleResponse(response);
+    private async create(client: FunctionClient, urn = '') {
+        this.spin.info(`开始创建触发器`);
+        logger.debug(`开始创建触发器`);
+        try {
+            const request = await this.triggerType.getCreateRequest(urn);
+            const result: any = await client.getFunctionClient().createFunctionTrigger(request);
+            handlerResponse(result);
+            return this.handleResponse(result);
+        } catch (err) {
+            this.spin.fail(`创建触发器失败.`);
+            logger.error(`创建触发器失败. err=${(err as Error).message}`);
+            throw err;
+        }
     }
 
     /**
@@ -105,30 +125,21 @@ export class TriggerService {
      * @param triggerId 
      * @returns 
      */
-    private async update(triggerId = '') {
-        const request = this.triggerType.getUpdateRequest(triggerId);
-        const result = await this.client.getFunctionClient().updateTrigger(request);
-        const response = this.handerResult(result, this.logMap.delete);
-        return this.handleResponse(response);
+    private async update(client: FunctionClient, triggerId = '', urn = '') {
+        this.spin.info(`开始更新触发器`);
+        logger.debug(`开始更新触发器`);
+        try {
+            const request = this.triggerType.getUpdateRequest(triggerId, this.triggerType.triggerStatus, urn);
+            const result: any = await client.getFunctionClient().updateTrigger(request);
+            handlerResponse(result);
+            return this.handleResponse(result);
+        } catch (err) {
+            this.spin.fail(`更新触发器失败.`);
+            logger.error(`更新触发器失败. err=${(err as Error).message}`);
+            throw err;
+        }
     }
 
-    /**
-     * 获取当前触发器实例
-     * @returns 
-     */
-    private getType(): Trigger {
-        let type: Trigger;
-        const codeType = this.props.trigger.triggerTypeCode as CreateFunctionTriggerRequestBodyTriggerTypeCodeEnum;
-        switch (codeType) {
-            case CreateFunctionTriggerRequestBodyTriggerTypeCodeEnum.APIG:
-                type = new ApigTrigger(this.client, this.props.trigger, this.functionUrn);
-                break;
-            default:
-                type = new Trigger(this.client, this.props.trigger, this.functionUrn);
-                break;
-        }
-        return type;
-    }
 
     /**
      * 校验触发器是否存在
@@ -138,17 +149,15 @@ export class TriggerService {
      * 4. 触发器ID不存在，通过EventData的内容判断触发器是否存在
      * @returns 
      */
-    private async getTrigger() {
+    private async getTrigger(client: FunctionClient, urn = '', triggerType = '', triggerName = ''): Promise<ITriggerResult | null> {
         try {
-            const triggerId = await getState('triggerInfo') || '';
-            const request = new ListFunctionTriggersRequest().withFunctionUrn(this.functionUrn);
-            const result = await this.client.getFunctionClient().listFunctionTriggers(request);
-            const response = this.handerResult(result, null, false);
-            const list = response.filter(res => res.trigger_type_code === this.triggerType.getType());
+            const request = new ListFunctionTriggersRequest().withFunctionUrn(urn);
+            const result: any = await client.getFunctionClient().listFunctionTriggers(request);
+            handlerResponse(result);
+            const list = result.filter(res => res.trigger_type_code === triggerType);
             for (let i = 0; i < list.length; i++) {
-                const isId = list[i].trigger_id === triggerId;
-                const isEqual = await this.triggerType.isEqual(list[i].event_data);
-                if (isId || isEqual) {
+                const isEqual = await this.triggerType.isEqual(list[i].event_data, triggerName);
+                if (isEqual) {
                     return list[i];
                 }
             }
@@ -196,69 +205,49 @@ export class TriggerService {
             },
         ];
     }
-
-    /**
-     * 处理函数结果
-     * @param result 处理结果
-     * @param type 日志信息
-     * @param showLog 展示日志
-     * @returns 
-     */
-    private handerResult(result: any = {}, type: { success: string; failed: string }, showLog = true) {
-        const { httpStatusCode, errorMsg, errorCode } = result;
-        const triggerType = this.triggerType.getType();
-        if (httpStatusCode >= 200 && httpStatusCode < 300) {
-            showLog && this.spin.succeed(type?.success.replace('{name}', triggerType));
-            showLog && logger.debug(type?.success.replace('{name}', triggerType));
-            return result;
-        }
-        showLog && this.spin.fail(type?.failed.replace('{name}', triggerType));
-        showLog && logger.error(`${type?.failed.replace('{name}', triggerType)} result = ${JSON.stringify(result)}`);
-        throw new Error(JSON.stringify({ errorMsg, errorCode }));
-    }
 }
 
 export class Trigger {
-    protected triggerInfo: ITrigger;
-
     constructor(
         public readonly client: FunctionClient,
-        public readonly props: any = {},
-        public readonly functionUrn = ''
-    ) {
-        this.handlerInputs(props);
-    }
+        public readonly triggerInfo: ITriggerProps = { triggerTypeCode: TypeCode.APIG, eventData: {} },
+        public readonly functionName = '',
+    ) { }
 
     /**
      * 获取触发器类型
      * @returns 
      */
-    getType() {
-        return this.triggerInfo.trigger_type_code;
+    get triggerTypeCode() {
+        return this.triggerInfo.triggerTypeCode;
     }
 
     /**
      * 获取触发器状态
      * @returns 
      */
-    getStatus() {
-        return this.triggerInfo.trigger_status;
+    get triggerStatus() {
+        return this.triggerInfo.status;
+    }
+
+    getTriggerName() {
+        return this.triggerInfo.eventData.name;
     }
 
     /**
      * 封装创建触发器请求体
      * @returns 
      */
-    async getCreateRequest(): Promise<CreateFunctionTriggerRequest> {
+    async getCreateRequest(urn = ''): Promise<CreateFunctionTriggerRequest> {
         const eventData = await this.getEventData();
         const body = new CreateFunctionTriggerRequestBody()
             .withEventData(eventData)
-            .withTriggerStatus(this.triggerInfo.trigger_status)
-            .withEventTypeCode(this.triggerInfo.event_type_code)
-            .withTriggerTypeCode(this.triggerInfo.trigger_type_code as CreateFunctionTriggerRequestBodyTriggerTypeCodeEnum);
+            .withTriggerStatus(this.triggerInfo.status as CreateFunctionTriggerRequestBodyTriggerStatusEnum)
+            .withEventTypeCode(this.triggerInfo.eventTypeCode)
+            .withTriggerTypeCode(this.triggerInfo.triggerTypeCode as CreateFunctionTriggerRequestBodyTriggerTypeCodeEnum);
         return new CreateFunctionTriggerRequest()
             .withBody(body)
-            .withFunctionUrn(this.functionUrn);
+            .withFunctionUrn(urn);
     }
 
     /**
@@ -266,14 +255,14 @@ export class Trigger {
      * @param triggerId 触发器ID
      * @returns 
      */
-    getUpdateRequest(triggerId = ''): UpdateTriggerRequest {
+    getUpdateRequest(triggerId = '', status, urn = ''): UpdateTriggerRequest {
         const body = new UpdateTriggerRequestBody()
-            .withTriggerStatus(this.props.trigger.status);
+            .withTriggerStatus(status);
         return new UpdateTriggerRequest()
-            .withFunctionUrn(this.functionUrn)
             .withTriggerId(triggerId)
             .withBody(body)
-            .withTriggerTypeCode(this.triggerInfo.trigger_type_code as UpdateTriggerRequestTriggerTypeCodeEnum);
+            .withFunctionUrn(urn)
+            .withTriggerTypeCode(this.triggerInfo.triggerTypeCode.toString() as UpdateTriggerRequestTriggerTypeCodeEnum);
     }
 
     /**
@@ -281,19 +270,20 @@ export class Trigger {
      * @param triggerId 触发器ID
      * @returns 
      */
-    getDeleteRequest(triggerId = ''): DeleteFunctionTriggerRequest {
+    getDeleteRequest(triggerId = '', urn = ''): DeleteFunctionTriggerRequest {
         return new DeleteFunctionTriggerRequest()
-            .withFunctionUrn(this.functionUrn)
             .withTriggerId(triggerId)
-            .withTriggerTypeCode(this.triggerInfo.trigger_type_code as DeleteFunctionTriggerRequestTriggerTypeCodeEnum);
+            .withFunctionUrn(urn)
+            .withTriggerTypeCode(this.triggerInfo.triggerTypeCode.toString() as DeleteFunctionTriggerRequestTriggerTypeCodeEnum);
     }
 
     /**
-     * 判断触发器内容是否相等
-     * @param trigger 
-     * @returns 
-     */
-    async isEqual(trigger: IEventData): Promise<boolean> {
+    * 判断触发器内容是否相等
+    * @param trigger 
+    * @param name 判断名称
+    * @returns 
+    */
+    async isEqual(trigger: IEventData, name = ''): Promise<boolean> {
         return Promise.resolve(false);
     }
 
@@ -302,22 +292,8 @@ export class Trigger {
      * @returns 
      */
     protected async getEventData(): Promise<IEventData> {
-        return Promise.resolve(this.triggerInfo.event_data);
+        return Promise.resolve({});
     };
-
-    /**
-     * 处理数据
-     * @param props 
-     */
-    private handlerInputs(props: any) {
-        this.triggerInfo = {
-            trigger_id: props.triggerId,
-            trigger_type_code: props.triggerTypeCode,
-            trigger_status: props.status as CreateFunctionTriggerRequestBodyTriggerStatusEnum,
-            event_type_code: props.eventTypeCode,
-            event_data: props.eventData || {}
-        };
-    }
 }
 
 /**
@@ -326,14 +302,6 @@ export class Trigger {
 export class ApigTrigger extends Trigger {
     private apigClient: ApigClient;
     private eventData: IEventData;
-    constructor(
-        public readonly client: FunctionClient,
-        public props: any = {},
-        public readonly functionUrn = ''
-    ) {
-        super(client, props, functionUrn);
-        this.apigClient = this.client.getApigClient();
-    }
 
     /**
      * 获取APIG触发器的EventData
@@ -347,23 +315,38 @@ export class ApigTrigger extends Trigger {
             return this.eventData;
         }
         try {
+            this.apigClient = this.client.getApigClient();
+            const eventData: IApigProps = this.triggerInfo.eventData;
             const { groups } = await this.apigClient.listApiGroups();
-            const group = groups?.length > 0 ? groups[0] : await this.apigClient.createApiGroup();
-            const name = `APIG_${randomLenChar(6)}`;
+            const group: any = await this.findGroups(groups, eventData.groupName ?? `APIG_${randomLenChar(6)}`);
+
             this.eventData = {
-                ...this.triggerInfo.event_data,
                 group_id: group.id,
                 sl_domain: group.sl_domain,
-                name: this.triggerInfo.event_data.name?.replace(/-/g, '_') ?? name,
-                path: this.triggerInfo.event_data.path?.replace(/-/g, '_') ?? `/${name}`
+                name: group.name ?? this.functionName,
+                path: `/${this.functionName}`,
+                function_info: {
+                    timeout: eventData.timeout ?? 5000
+                },
+                auth: eventData.auth ?? 'IAM',
+                protocol: eventData.prtocol ?? 'HTTPS',
+                env_id: "DEFAULT_ENVIRONMENT_RELEASE_ID",
+                env_name: "RELEASE",
+                match_mode: "SWA",
+                req_method: "ANY",
+                backend_type: "FUNCTION",
+                type: 1,
             }
             return this.eventData;
         } catch (err) {
-            return this.triggerInfo.event_data;
+            throw err;
         }
     };
 
-    async isEqual(trigger: IEventData): Promise<boolean> {
+    async isEqual(trigger: IEventData, name = ''): Promise<boolean> {
+        if (name) {
+            return name === trigger.name;
+        }
         const eventData = await this.getEventData();
         return trigger && eventData.name === trigger.name
             && eventData.auth === trigger.auth
@@ -371,5 +354,84 @@ export class ApigTrigger extends Trigger {
             && eventData.protocol === trigger.protocol
             && eventData.group_id === trigger.group_id
             && eventData.env_id === trigger.env_id;
+    }
+
+    private async findGroups(groups = [], groupName = '') {
+        let group = groups.find(g => g.name === groupName);
+        if (group) {
+            return group;
+        }
+        let msg = `分组[${groupName}]不存在。`;
+        const suffix = '\n是否创建？';
+        if (groups.length > 0) {
+            tableShow(groups.slice(0, 20), ['name', 'id']);
+            msg += `\n您可以选择存在的分组或新建[${groupName}]分组。`;
+        }
+        if (await promptForConfirmOrDetails(`${msg}${suffix}`)) {
+            const result = await this.apigClient.createApiGroup(groupName);
+            return result;
+        }
+        throw new Error(`The configured groupname[${groupName}] does not exist.`);
+    }
+}
+
+/**
+ * OBS 触发器
+ */
+export class ObsTrigger extends Trigger {
+
+    async getEventData(): Promise<IEventData> {
+        const eventData: IObsProps = this.triggerInfo.eventData;
+        return {
+            bucket: eventData.bucket,
+            events: eventData.events,
+            name: eventData.name ?? `obs-event-${randomLenChar(6)}`,
+            prefix: eventData.prefix ?? null,
+            suffix: eventData.suffix ?? null
+        };
+    }
+
+    async isEqual(trigger: IEventData, name = ''): Promise<boolean> {
+        if (name) {
+            return name === trigger.bucket;
+        }
+        const eventData: IObsProps = this.triggerInfo.eventData;
+        return trigger && eventData.bucket === trigger.bucket
+            && eventData.name === trigger.name
+            && eventData.prefix === trigger.prefix
+            && eventData.suffix === trigger.suffix
+            && eventData.events === trigger.events;
+    }
+
+    getTriggerName() {
+        const eventData: IObsProps = this.triggerInfo.eventData;
+        return eventData.bucket;
+    }
+}
+
+/**
+ * TIMER 触发器
+ */
+export class TimerTrigger extends Trigger {
+
+    async getEventData(): Promise<IEventData> {
+        const eventData: ITimerProps = this.triggerInfo.eventData;
+        return {
+            name: eventData.name ?? `Timer-${randomLenChar(6)}`,
+            schedule: eventData.schedule ?? '3m',
+            schedule_type: eventData.scheduleType ?? 'Rate',
+            user_event: eventData.userEvent
+        };
+    }
+
+    async isEqual(trigger: IEventData, name = ''): Promise<boolean> {
+        if (name) {
+            return name === trigger.name;
+        }
+        const eventData: ITimerProps = this.triggerInfo.eventData;
+        return trigger && eventData.name === trigger.name
+            && eventData.schedule === trigger.schedule
+            && eventData.scheduleType === trigger.schedule_type
+            && eventData.userEvent === trigger.user_event;
     }
 }

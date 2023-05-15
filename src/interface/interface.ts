@@ -1,11 +1,12 @@
-import { CreateFunctionTriggerRequestBodyTriggerStatusEnum } from "@huaweicloud/huaweicloud-sdk-functiongraph";
-import { ICredentials } from "../common/entity";
 import { FunctionClient } from "../clients/function.client";
+import { ITriggerProps } from "./trigger.interface";
+import { IFunctionProps } from "./function.interface";
 
 export enum ServiceType {
     APIG = 'apig',
     IAM = 'iam',
-    FUNCTIONGRAPH = 'functiongraph'
+    FUNCTIONGRAPH = 'functiongraph',
+    OBS = 'obs'
 }
 
 export enum MethodType {
@@ -19,55 +20,65 @@ export enum CommandType {
     TRIGGER = 'trigger'
 }
 
+export interface ICredentials {
+    AccountID?: string;
+    AccessKeyID?: string;
+    AccessKeySecret?: string;
+    SecurityToken?: string;
+    SecretID?: string;
+    SecretKey?: string;
+    SecretAccessKey?: string;
+    KeyVaultName?: string;
+    TenantID?: string;
+    ClientID?: string;
+    ClientSecret?: string;
+    PrivateKeyData?: string
+}
+
+export interface InputProps {
+    props: IProperties; // 用户自定义输入
+    credentials: ICredentials; // 用户秘钥
+    appName: string; // 
+    project: {
+      component: string; // 组件名（支持本地绝对路径）
+      access: string; // 访问秘钥名
+      projectName: string; // 项目名
+    };
+    command: string; // 执行指令
+    args: string; // 命令行 扩展参数
+    argsObj: any;
+    path: {
+      configPath: string // 配置路径
+    }
+}
+  
+export interface IProperties {
+    region?: string;
+    urn?: string;
+    function?: IFunctionProps;
+    triggers?: ITriggerProps;
+    [prop: string]: any;
+}
+
+// 处理后的配置信息
 export interface IInputs {
     projectId?: string;
     credentials?: ICredentials;
-    subCommand?: CommandType;
-    props?: { [prop: string]: any };
+    subCommand?: string;
+    props?: IProperties;
     client?: FunctionClient;
     args?: string;
     isHelp?: boolean
 }
 
-export interface IFunctionProps {
-    func_name: string; // 函数名称
-    func_urn?: string;
-    package: string; // 函数所属的分组Package
-    runtime: string; // 运行时
-    timeout: number; // 函数执行超时时间
-    handler: string; // 函数执行入口
-    memory_size: number; // 函数消耗的内存
-    code_type?: string; // 函数代码类型
-    code_filename?: string; // 函数的文件名
-    func_code?: IFuncCode; // FuncCode结构返回体。
-    description?: string; // 函数描述
-    initializer_handler?: string; // 函数初始化入口
-    initializer_timeout?: number; // 初始化超时时间
-    enterprise_project_id?: string; // 企业项目ID
-    type?: string; // 函数版本
-    user_data?: string; // 用户自定义的name/value信息
-    encrypted_user_data?: string; // 用户自定义的name/value信息，用于需要加密的配置。
-    app_xrole?: string; // 函数使用的权限委托名称
-    xrole?: string; // 函数使用的权限委托名称
-    depend_version_list?: Array<string>; // 依赖版本id列表
-    code?: {
-        codeUri: string;
-    },
-}
-
-export interface IFuncCode {
-    file: string;
-    link: string;
-}
-
-export interface ITrigger {
-    trigger_id?: string;
-    trigger_type_code: string; // 触发器类型。
-    trigger_status?: CreateFunctionTriggerRequestBodyTriggerStatusEnum; // 触发器状态，取值为ACTIVE,DISABLED。
-    event_type_code?: string; // 消息代码。
-    event_data: IEventData; // 事件结构体。
-}
-
-export interface IEventData {
-    [key: string]: string
+export interface IRemoveProps {
+    region: string;
+    functionName: string;
+    urn: string;
+    version?: string;
+    aliasName?: string;
+    triggerName?: string;
+    triggerType?: string;
+    triggerInfo?: ITriggerProps;
+    isYml: boolean;
 }

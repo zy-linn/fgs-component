@@ -10,42 +10,24 @@ import {
     ShowFunctionConfigRequest,
     UpdateFunctionCodeRequest,
     UpdateFunctionCodeRequestBody,
-    UpdateFunctionCodeRequestBodyCodeTypeEnum
+    UpdateFunctionCodeRequestBodyCodeTypeEnum,
+    FuncVpc,
+    UpdateFunctionConfigRequest,
+    UpdateFunctionConfigRequestBody,
+    StrategyConfig,
+    UpdateFunctionConfigRequestBodyRuntimeEnum
 } from "@huaweicloud/huaweicloud-sdk-functiongraph";
+import { spinner } from "@serverless-devs/core";
 import logger from "../common/logger";
-import { IFunctionProps } from "../interface/interface";
-import { startZip } from "../utils/util";
+import { IProperties, IRemoveProps } from "../interface/interface";
+import { handlerResponse, startZip } from "../utils/util";
+import { IFunctionProps, IFunctionResult } from "../interface/function.interface";
 
 export class FunctionService {
-    private functionInfo: IFunctionProps;
-    private functionUrn = '';
     private metaData: any;
-    private logMap = {
-        createFunction: {
-            success: `Function {name} is created successfully.`,
-            failed: `Failed to create Function {name}.`
-        },
-        deleteFunction: {
-            success: `Function {name} is deleted successfully.`,
-            failed: `Failed to delete Function {name}.`
-        },
-        updateFunctionCode: {
-            success: `The code of function {name} is updated successfully.`,
-            failed: `Failed to update the code of function {name}.`
-        },
-        updateFunctionConfig: {
-            success: `The configuration of function {name} is updated successfully.`,
-            failed: `Failed to update the configuration of function {name}.`
-        },
-    };
+    private spin = spinner();
 
-    constructor(
-        public readonly client: FunctionGraphClient,
-        public readonly props: any = {},
-        public readonly spin: any
-    ) {
-        this.handlerInputs(props);
-    }
+    constructor() { }
 
     /**
      * 部署函数
@@ -53,10 +35,19 @@ export class FunctionService {
      * 2. 函数存在，执行更新
      * 3. 不存在，执行创建
      */
-    async deploy() {
+    async deploy(props: IProperties, client: FunctionGraphClient) {
         try {
-            const isExist = await this.config();
-            const response = isExist ? await this.update() : await this.create();
+            if (!props.function) {
+                throw new Error('请先在s.yml中配置函数信息');
+            }
+            if (!props.function.agencyName && (props.function.vpcId || props.function.subnetId)) {
+                throw new Error('请先在s.yml中配置函数的委托名称');
+            }
+            if (props.function.codeType === 'obs' && !props.function.codeUrl) {
+                throw new Error('请先在s.yml中配置函数函数代码包在OBS上的地址');
+            }
+            const isExist = await this.config(client, props.urn);
+            const response = isExist ? await this.update(props, client, this.metaData) : await this.create(props, client);
             return this.handleResponse(response.func_urn ? response : this.metaData);
         } catch (err) {
             throw err;
@@ -67,108 +58,146 @@ export class FunctionService {
      * 删除函数
      * @returns 
      */
-    async remove() {
-        this.spin.info(`Start remove function ${this.functionInfo.func_name}.`);
+    async remove({ functionName, urn }: IRemoveProps, client: FunctionGraphClient) {
+        this.spin.info(`开始删除函数[${functionName}].`);
+        logger.debug(`开始删除函数[${functionName}].`);
         try {
-            const request = new DeleteFunctionRequest().withFunctionUrn(this.getNoVersionUrn());
-            const result = await this.client.deleteFunction(request);
-            return this.handerResult(result, this.logMap.deleteFunction);
-        } catch (err) {
-            throw err;
+            const request = new DeleteFunctionRequest().withFunctionUrn(urn);
+            const result: any = await client.deleteFunction(request);
+            handlerResponse(result);
+            this.spin.succeed(`函数[${functionName}]删除成功.`);
+        } catch (error) {
+            this.spin.fail(`函数[${functionName}]删除失败.`);
+            logger.error(`函数[${functionName}]删除失败. err=${(error as Error).message}`);
+            throw error;
         }
-    }
-
-    getUrn() {
-        return this.functionUrn;
     }
 
     /**
      * 创建函数
      * @returns 
      */
-    private async create() {
-        this.spin.info(`Start creating function ${this.functionInfo.func_name}.`);
-        const zipFile = await startZip(this.functionInfo.code.codeUri);
-        this.spin.succeed("File compression completed");
+    private async create(props: IProperties, client: FunctionGraphClient) {
+        const functionInfo = props.function;
         const body = new CreateFunctionRequestBody()
-            .withFuncName(this.functionInfo.func_name)
-            .withPackage(this.functionInfo.package)
-            .withRuntime(this.functionInfo.runtime as CreateFunctionRequestBodyRuntimeEnum)
-            .withCodeType(CreateFunctionRequestBodyCodeTypeEnum.ZIP)
-            .withHandler(this.functionInfo.handler)
-            .withTimeout(this.functionInfo.timeout)
-            .withMemorySize(this.functionInfo.memory_size)
-            .withType(CreateFunctionRequestBodyTypeEnum.V2)
-            .withFuncCode(new FuncCode().withFile(zipFile))
-        const result: any = await this.client.createFunction(new CreateFunctionRequest().withBody(body));
-        return this.handerResult(result, this.logMap.createFunction);
+            .withFuncName(functionInfo.functionName)
+            .withPackage('default')
+            .withRuntime(functionInfo.runtime as CreateFunctionRequestBodyRuntimeEnum)
+            .withCodeType((functionInfo.codeType || 'zip') as CreateFunctionRequestBodyCodeTypeEnum)
+            .withHandler(functionInfo.handler || 'index.handler')
+            .withTimeout(functionInfo.timeout || 30)
+            .withMemorySize(functionInfo.memorySize || 128)
+            .withType(CreateFunctionRequestBodyTypeEnum.V2);
+        functionInfo.agencyName && body.withXrole(functionInfo.agencyName);
+        if (functionInfo.vpcId && functionInfo.subnetId) {
+            body.withFuncVpc(new FuncVpc().withVpcId(functionInfo.vpcId).withSubnetId(functionInfo.subnetId));
+        }
+        functionInfo.environmentVariables && body.withUserData(JSON.stringify(functionInfo.environmentVariables));
+        functionInfo.dependVersionList && body.withDependVersionList(functionInfo.dependVersionList);
+        functionInfo.description && body.withDescription(functionInfo.description);
+        if (functionInfo.codeType === 'obs') {
+            body.withCodeUrl(functionInfo.codeUrl);
+        } else {
+            const zipFile = await startZip(functionInfo.code.codeUri);
+            this.spin.succeed("File compression completed");
+            body.withFuncCode(new FuncCode().withFile(zipFile))
+        }
+        this.spin.info(`Start creating function ${functionInfo.functionName}.`);
+        try {
+            const result: any = await client.createFunction(new CreateFunctionRequest().withBody(body));
+            handlerResponse(result);
+            if ((functionInfo.concurrentNum && functionInfo.concurrentNum !== result.strategy_config?.concurrent_num)
+                || (functionInfo.concurrency && functionInfo.concurrency !== result.strategy_config?.concurrency)) { // 更新最大实例数
+                await this.updateConfig(props, client, result);
+            }
+            return result;
+        } catch (error) {
+            this.spin.fail(`Failed to create Function ${functionInfo.functionName}.`);
+            throw error;
+        }
     }
 
     /**
      * 更新函数
      * @returns 
      */
-    private async update() {
-        return await this.updateCode();
+    private async update(props: IProperties, client: FunctionGraphClient, config: IFunctionResult) {
+        if (!props.type || props.type === 'code') {
+            await this.updateCode(props, client, config);
+        }
+        if (!props.type || props.type === 'config') {
+            await this.updateConfig(props, client, config);
+        }
+        return config;
     }
 
     /**
      * 更新函数代码
      * @returns 
      */
-    private async updateCode() {
-        this.spin.info(`start update the code of function ${this.functionInfo.func_name}.`);
-        const zipFile = await startZip(this.functionInfo.code.codeUri);
-        const body = new UpdateFunctionCodeRequestBody()
-            .withCodeType(UpdateFunctionCodeRequestBodyCodeTypeEnum.ZIP)
-            .withFuncCode(new FuncCode().withFile(zipFile));
+    private async updateCode(props: IProperties, client: FunctionGraphClient, config: IFunctionResult) {
+        this.spin.info(`开始更新函数[${props.function.functionName}]代码.`);
+        logger.debug(`开始更新函数[${props.function.functionName}]代码.`);
+        try {
+            const body = new UpdateFunctionCodeRequestBody()
+                .withCodeType(props.function.codeType as UpdateFunctionCodeRequestBodyCodeTypeEnum)
+                .withDependVersionList(props.function.dependVersionList ?? config.depend_version_list);
+            if (props.function.codeType === 'obs') {
+                body.withCodeUrl(props.function.codeUrl);
+            } else {
+                const zipFile = await startZip(props.function.code.codeUri);
+                this.spin.succeed("File compression completed");
+                body.withFuncCode(new FuncCode().withFile(zipFile))
+            }
 
-        if (Array.isArray(this.metaData.depend_version_list) && this.metaData.depend_version_list.length > 0) {
-            body.withDependVersionList(this.metaData.depend_version_list)
+            const result: any = await client.updateFunctionCode(new UpdateFunctionCodeRequest().withBody(body).withFunctionUrn(config.func_urn));
+            handlerResponse(result);
+            this.spin.succeed(`函数[${props.function.functionName}]代码更新成功.`);
+            logger.debug(`函数[${props.function.functionName}]代码更新成功.`);
+        } catch (error) {
+            this.spin.fail(`函数[${props.function.functionName}]代码更新失败.`);
+            logger.error(`函数[${props.function.functionName}]代码更新失败. err=${(error as Error).message}`);
+            throw error;
         }
-        const result = await this.client.updateFunctionCode(new UpdateFunctionCodeRequest().withBody(body).withFunctionUrn(this.functionUrn));
-        return this.handerResult(result, this.logMap.updateFunctionCode);
     }
 
-    // private async updateConfig() {
+    /**
+     * 更新函数配置
+     * @param props 
+     * @param client 
+     * @param config 
+     */
+    private async updateConfig(props: IProperties, client: FunctionGraphClient, config: IFunctionResult) {
+        this.spin.info(`开始更新函数[${props.function.functionName}]配置.`);
+        logger.debug(`开始更新函数[${props.function.functionName}]配置.`);
+        try {
+            const body = this.getConfigRequestBody(props.function, config);
+            const request = new UpdateFunctionConfigRequest().withFunctionUrn(props.urn).withBody(body);
+            const result: any = client.updateFunctionConfig(request);
+            handlerResponse(result);
+            this.spin.succeed(`函数[${props.function.functionName}]配置更新成功.`);
+            logger.debug(`函数[${props.function.functionName}]配置更新成功.`);
+        } catch (error) {
+            this.spin.fail(`函数[${props.function.functionName}]配置更新失败.`);
+            logger.error(`函数[${props.function.functionName}]配置更新失败. err=${(error as Error).message}`);
+            throw error;
+        }
 
-    // }
-
+    }
 
     /**
      * 校验函数是否存在
      * @param props 
      * @returns 
      */
-    private async config() {
+    private async config(client: FunctionGraphClient, urn = ''): Promise<boolean> {
         try {
-            const request = new ShowFunctionConfigRequest().withFunctionUrn(this.functionUrn);
-            this.metaData = await this.client.showFunctionConfig(request);
+            const request = new ShowFunctionConfigRequest().withFunctionUrn(urn);
+            this.metaData = await client.showFunctionConfig(request);
             return this.metaData.httpStatusCode >= 200 && this.metaData.httpStatusCode < 300;
         } catch (err) {
-            throw err;
+            return false;
         }
-    }
-
-    /**
-     * 处理函数信息
-     * @param props 
-     */
-    private async handlerInputs(props: any = {}) {
-        const { region, projectId, function: funcProps } = props;
-        this.functionInfo = {
-            func_name: funcProps.functionName,
-            handler: funcProps.handler || 'index.handler',
-            memory_size: funcProps.memorySize || 128,
-            timeout: funcProps.timeout || 30,
-            runtime: funcProps.runtime,
-            package: funcProps.package || 'default',
-            code_type: 'zip',
-            code: {
-                codeUri: funcProps.code.codeUri
-            }
-        };
-        this.functionUrn = this.handlerUrn(region, projectId, this.functionInfo.package, this.functionInfo.func_name);
     }
 
     /**
@@ -202,39 +231,48 @@ export class FunctionService {
     }
 
     /**
-     * 封装URN
-     * @param region 
-     * @param projectId 
-     * @param funPackage 
-     * @param name 
+     * 获取配置更新参数
+     * @param functionInfo 
+     * @param config 
      * @returns 
      */
-    private handlerUrn(region, projectId, funPackage, name) {
-        return `urn:fss:${region}:${projectId}:function:${funPackage}:${name}:latest`;
-    }
+    private getConfigRequestBody(functionInfo: IFunctionProps, config: IFunctionResult) {
+        const body = new UpdateFunctionConfigRequestBody();
+        body.withFuncName(config.func_name).withRuntime(config.runtime as UpdateFunctionConfigRequestBodyRuntimeEnum)
+            .withHandler(functionInfo.handler ?? config.handler)
+            .withTimeout(functionInfo.timeout ?? config.timeout)
+            .withMemorySize(functionInfo.memorySize ?? config.memory_size)
+            .withDescription(functionInfo.description ?? config.description)
+            .withXrole(functionInfo.agencyName ?? config.xrole);
 
-    /**
-     * 处理函数结果
-     * FSS.0409 代码没有更新
-     * @param result 处理结果
-     * @param type 展示内容
-     * @returns 
-     */
-    private handerResult(result: any = {}, type: { success: string; failed: string }) {
-        const { httpStatusCode, errorMsg, errorCode } = result;
-        if (httpStatusCode >= 200 && httpStatusCode < 300 || errorCode === "FSS.0409") {
-            this.spin.succeed(type.success.replace('{name}', this.functionInfo.func_name));
-            logger.debug(type.success.replace('{name}', this.functionInfo.func_name));
-            return result;
+        // 最大实例数
+        const strategy = new StrategyConfig().withConcurrency(400).withConcurrentNum(10);
+        if (config.strategy_config) {
+            strategy.withConcurrency(functionInfo.concurrency ?? config.strategy_config.concurrent_num);
+            strategy.withConcurrentNum(functionInfo.concurrentNum ?? config.strategy_config.concurrent_num);
+        } else {
+            functionInfo.concurrency && strategy.withConcurrency(functionInfo.concurrency);
+            functionInfo.concurrentNum && strategy.withConcurrentNum(functionInfo.concurrentNum);
         }
-        this.spin.fail(type.failed.replace('{name}', this.functionInfo.func_name));
-        logger.error(`${type.failed.replace('{name}', this.functionInfo.func_name)} result = ${JSON.stringify(result)}`);
-        throw new Error(JSON.stringify({ errorMsg, errorCode }));
-    }
+        body.withStrategyConfig(strategy);
 
-    private getNoVersionUrn() {
-        const urns = this.functionUrn.split(':');
-        urns.pop();
-        return urns.join(':');
+        const vpc = new FuncVpc();
+        if (functionInfo.vpcId && functionInfo.subnetId) {
+            vpc.withVpcId(functionInfo.vpcId).withSubnetId(functionInfo.subnetId);
+            body.withFuncVpc(vpc);
+        } else if (config.func_vpc) {
+            vpc.withCidr(config.func_vpc.cidr).withGateway(config.func_vpc.gateway)
+                .withSubnetId(config.func_vpc.subnet_id).withSubnetName(config.func_vpc.subnet_name)
+                .withVpcId(config.func_vpc.vpc_id).withVpcName(config.func_vpc.vpc_name);
+        }
+        body.withFuncVpc(vpc);
+
+        if (functionInfo.environmentVariables) { // 环境变量
+            body.withUserData(JSON.stringify(functionInfo.environmentVariables));
+        } else {
+            body.withUserData(config.user_data ?? '{}');
+        }
+        return body;
     }
 }
+

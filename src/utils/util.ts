@@ -1,6 +1,10 @@
 import * as fs from "fs";
 import * as compressing from 'compressing';
-import { ServiceType } from "../interface/interface";
+import Table from 'tty-table';
+import inquirer from 'inquirer';
+import { ICredentials, ServiceType } from "../interface/interface";
+import { FunctionClient } from "../clients/function.client";
+import { IamClient } from "../clients/iam.client";
 
 /**
  * 代码转化成base64
@@ -75,4 +79,113 @@ export function randomLenChar(len = 6) {
  */
 export function isString(obj) {
     return typeof obj === 'string';
+}
+
+/**
+ * 判断是否为NUll 或 undefined
+ * @param obj 
+ * @returns 
+ */
+export function isNullOrUndefined(obj) {
+    return obj === null || obj === undefined;
+}
+
+/**
+ * 生成函数
+ * @param region 区域
+ * @param projectId 项目ID
+ * @param funPackage 依赖
+ * @param name 函数名
+ * @param tag 版本
+ * @returns 
+ */
+export function handlerUrn(region, projectId, funPackage, name, tag = '') {
+    const urn = `urn:fss:${region}:${projectId}:function:${funPackage}:${name}`;
+    return tag ? `${urn}:${tag}` : urn;
+}
+
+/**
+ * 获取Client实例
+ * @param credentials 证书信息
+ * @param region 区域
+ * @returns Client实例 项目ID
+ */
+export async function getFunctionClient(credentials: ICredentials, region = ''): Promise<{ client: FunctionClient, projectId: string }> {
+    const projectId = await new IamClient().build(credentials).getProject(region);
+
+    if (!projectId) {
+        throw new Error(`ProjectId not found. region = ${region}.`);
+    }
+
+    const client = new FunctionClient().build(credentials, region, projectId);
+
+    return {
+        client,
+        projectId
+    };
+};
+
+/**
+ * 处理响应
+ * @param param
+ */
+export function handlerResponse({ httpStatusCode, errorMsg, errorCode }) {
+    if ((httpStatusCode >= 300 || httpStatusCode < 200) && errorCode !== 'FSS.0409')  {
+        throw new Error(errorMsg);
+    }
+}
+
+/**
+ * 表格展示
+ * @param data 数据
+ * @param showKey 展示是字段
+ */
+export const tableShow = (data, showKey) => {
+    const options = {
+        borderStyle: 'solid',
+        borderColor: 'white',
+        headerAlign: 'center',
+        align: 'left',
+        color: 'white',
+        width: '100%',
+    };
+    const headerOption = {
+        headerColor: 'white',
+        color: 'white',
+        align: 'left',
+        width: 'auto',
+        formatter: value => value,
+    };
+    const header = showKey.map(value => {
+        const valueObj = isString(value) ? { value } : value;
+        return {
+            ...headerOption,
+            ...valueObj
+        };
+    });
+
+    console.log(Table(header, data, options).render());
+};
+
+
+export async function promptForConfirmOrDetails(message: string): Promise<boolean> {
+    const answers: any = await inquirer.prompt([
+        {
+            type: 'list',
+            name: 'prompt',
+            message,
+            choices: ['yes', 'no'],
+        },
+    ]);
+
+    return answers.prompt === 'yes';
+}
+
+/**
+ * 判断是否为YML配置
+ * @param configPath 路径
+ * @returns 
+ */
+export function isYml(configPath = '') {
+    return configPath.endsWith('s.yml') || configPath.endsWith('s.yaml');
 }

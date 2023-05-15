@@ -6,16 +6,11 @@ export const DEPLOY = [
     },
     {
         header: "Usage",
-        content: "$ s deploy <sub-command>",
+        content: ['$ s deploy <options>', '$ s deploy <sub-command> <options>'],
     },
     {
         header: "SubCommand List",
         content: [
-            {
-                desc: "all",
-                example:
-                    "Deploy all resources, you can get help through [s deploy all -h]",
-            },
             {
                 desc: "function",
                 example:
@@ -44,82 +39,8 @@ const GLOBAL_OPTIONS = [
     },
 ];
 
-export const DEPLOY_ALL = [
-    {
-        header: "Deploy all",
-        content: "Deploy all resources",
-    },
-    {
-        header: "Usage",
-        content: "$ s deploy all <options>",
-    },
-    {
-        header: "Options",
-        optionList: [
-            {
-                name: "type",
-                description: "Only deploy configuration or code. Value: code, config",
-                type: Boolean,
-            },
-            {
-                name: "use-local",
-                description: "Deploy resource using local config",
-                type: Boolean,
-            },
-            {
-                name: "assume-yes",
-                description:
-                    "Assume that the answer to any question which would be asked is yes",
-                alias: "y",
-                type: Boolean,
-            },
-        ],
-    },
-    {
-        header: "Global Options",
-        optionList: GLOBAL_OPTIONS,
-    },
-    {
-        header: "Examples with Yaml",
-        content: ["$ s deploy all", "$ s deploy all --use-local"],
-    },
-];
+export const DEPLOY_ALL = DEPLOY;
 
-export const DEPLOY_SERVICE = [
-    {
-        header: "Deploy service",
-        content: "Only deploy service resources",
-    },
-    {
-        header: "Usage",
-        content: "$ s deploy service <options>",
-    },
-    {
-        header: "Options",
-        optionList: [
-            {
-                name: "use-local",
-                description: "Deploy resource using local config",
-                type: Boolean,
-            },
-            {
-                name: "assume-yes",
-                description:
-                    "Assume that the answer to any question which would be asked is yes",
-                alias: "y",
-                type: Boolean,
-            },
-        ],
-    },
-    {
-        header: "Global Options",
-        optionList: GLOBAL_OPTIONS,
-    },
-    {
-        header: "Examples with Yaml",
-        content: ["$ s deploy service", "$ s deploy service --use-local"],
-    },
-];
 
 export const DEPLOY_FUNCTION = [
     {
@@ -138,11 +59,6 @@ export const DEPLOY_FUNCTION = [
                 description: "Only deploy configuration or code Value: code, config",
                 type: Boolean,
             },
-            {
-                name: "use-local",
-                description: "Deploy resource using local config",
-                type: Boolean,
-            },
         ],
     },
     {
@@ -151,7 +67,7 @@ export const DEPLOY_FUNCTION = [
     },
     {
         header: "Examples with Yaml",
-        content: ["$ s deploy function", "$ s deploy function --use-local"],
+        content: ["$ s deploy function"],
     },
 ];
 
@@ -170,42 +86,6 @@ export const DEPLOY_TRIGGER = [
     },
     {
         header: "Examples with Yaml",
-        content: ["$ s deploy trigger", "$ s deploy trigger --use-local"],
-    },
-];
-
-export const DEPLOY_DOMAIN = [
-    {
-        header: "Deploy domain",
-        content: "Only deploy domain resources",
-    },
-    {
-        header: "Usage",
-        content: "$ s deploy domain <options>",
-    },
-    {
-        header: "Options",
-        optionList: [
-            {
-                name: "use-local",
-                description: "Deploy resource using local config",
-                type: Boolean,
-            },
-            {
-                name: "assume-yes",
-                description:
-                    "Assume that the answer to any question which would be asked is yes",
-                alias: "y",
-                type: Boolean,
-            },
-        ],
-    },
-    {
-        header: "Global Options",
-        optionList: GLOBAL_OPTIONS,
-    },
-    {
-        header: "Examples with Yaml",
-        content: ["$ s deploy domain"],
+        content: ["$ s deploy trigger"],
     },
 ];
