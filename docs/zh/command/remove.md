@@ -166,30 +166,3 @@ Version [v1] deleted successfully.
 ```text
 Alias [pre] deleted successfully.
 ```
-
-## remove provision 命令
-
-`remove provision` 命令，是删除预留资源的命令。
-
-当执行命令`remove provision -h`/`remove provision --help`时，可以获取帮助文档。
-
-### 参数解析
-
-| 参数全称      | 参数缩写 | Yaml模式下必填 | Cli模式下必填 | 参数含义                                                     |
-| ------------- | -------- | -------------- | ------------- | ------------------------------------------------------------ |
-| region        | -        | 选填           | 必填          | 地区 |
-| function-name | -        | 选填           | 选填          | 函数名称，需配合 qualifier 一起使用 |
-| qualifier     |          | 选填           | 选填          | 服务的版本或者别名，版本仅支持 LATEST。如果指定`qualifier`，则仅清除此`qualifier`下的预留资源；如果未指定，将清除此服务下所有版本的预留资源                   |
-
-> 当前命令还支持部分全局参数（例如`-a/--access`, `--debug`等），详情可参考 [Serverless Devs 全局参数文档](https://serverless-devs.com/serverless-devs/command/readme#全局参数)
-
-### 操作案例
-
-- **有资源描述文件（Yaml）时**，可以直接执行`s remove provision --qualifier qualifier`删除预留实例；
-- **纯命令行形式（在没有资源描述 Yaml 文件时）**，需要指定服务所在地区以及服务名称，例如`s cli fgs remove provision --region cn-north-4 --function-name fgs-test --qualifier release`；
-
-上述命令的执行结果示例：
-
-```text
-Proivision qualifier [release] deleted successfully.
-```

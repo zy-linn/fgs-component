@@ -14,14 +14,14 @@ category: 'Yaml规范'
 | [runtime](#runtime)           | True  | String     | 运行时   |
 | memorySize          | True  | Number     | 函数消耗的内存。 单位M。 取值范围为：128、256、512、768、1024、1280、1536、1792、2048、2560、3072、3584、4096   |
 | timeout          | True  | Number     | 函数执行超时时间，超时函数将被强行停止，范围3～900秒   |
-| [codeType](#codeType)          | True  | String     | 函数代码类型  |
+| [codeType](#code-type)          | True  | String     | 函数代码类型  |
 | codeUrl          | False  | String     | 当CodeType为obs时，该值为函数代码包在OBS上的地址，CodeType为其他值时，该字段为空。  |
-| environmentVariables       | False | [Struct](#environmentvariables)    | 环境变量。最多定义20个，总长度不超过4KB |
+| environmentVariables       | False | [Struct](#environment-variables)    | 环境变量。最多定义20个，总长度不超过4KB |
 | agencyName          | False  | String     | 委托名称，需要IAM支持，并在IAM界面创建委托，当函数需要访问其他服务时，必须提供该字段  |
 | vpcId          | False  | String     | 虚拟私有云唯一标识。配置时，agencyName必填。https://console.huaweicloud.com/vpc/#/vpc/vpcs/list  |
 | subnetId          | False  | String     | 子网编号。配置时，agencyName必填。https://console.huaweicloud.com/vpc/#/vpc/subnets  |
 | dependVersionList          | False  | List\<String\>        | 依赖包，取依赖包的ID  |
-| code          | False  | [Struct](#funcCode)        | 本地代码地址，当CodeType为zip时，必填  |
+| code          | False  | [Struct](#func-code)        | 本地代码地址，当CodeType为zip时，必填  |
 | concurrency          | False  | Number        | 单函数最大实例数，取值-1到1000。 -1代表该函数实例数无限制； 0代表该函数被禁用  |
 | concurrentNum          | False  | Number        | 单实例最大并发数，取值-1到1000  |
 | description             | False | String                             | function 的简短描述        |
@@ -70,7 +70,7 @@ runtime 目前支持
 | codeUri          | True  | String | 本地代码地址                          |
 
 
-### environmentVariables
+### Environment Variables
 
 Object 格式，例如：
 

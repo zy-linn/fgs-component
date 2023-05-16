@@ -11,7 +11,7 @@ category: 'Yaml规范'
 | --------- | ----- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | triggerTypeCode    | True  | String | 触发器类型 |
 | status      | False  | Enum   | 触发器状态，取值为 `ACTIVE`、`DISABLED`，默认为 `ACTIVE` |   
-| eventData    | True  | Struct | 触发器配置，包括[APIG 触发器](#APIG触发器), [OBS 触发器](#OBS触发器), [TIMER 触发器](#TIMER触发器)|
+| eventData    | True  | Struct | 触发器配置，包括[APIG 触发器](#apig-触发器), [OBS 触发器](#obs-触发器), [TIMER 触发器](#timer-触发器)|
 
 triggerTypeCode 目前支持：`APIG`、`OBS`、`TIMER`
 
@@ -22,8 +22,8 @@ triggerTypeCode 目前支持：`APIG`、`OBS`、`TIMER`
 | ----------------- | ---- | ----------------- | --------------------------------------------- |
 | name              | False | String            | API名称，默认使用函数名             |
 | groupName         | False | String           | 分组，默认选择当前第一个                   |
-| auth              | False | [Enum](#Auth)           | 安全认证，默认为 `IAM`                    |
-| prtocol           | False | [Enum](#Prtocol)           | 请求协议，默认为 `HTTPS`                    |
+| auth              | False | [Enum](#auth)           | 安全认证，默认为 `IAM`                    |
+| prtocol           | False | [Enum](#prtocol)           | 请求协议，默认为 `HTTPS`                    |
 | timeout           | False | Number           | 后端超时时间，单位为毫秒，取值范围为 1 ~ 60000。默认为 `5000`      |
 
 #### Auth
