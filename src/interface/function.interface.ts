@@ -5,6 +5,7 @@ export interface IFunctionProps {
     handler: string; // 函数执行入口
     memorySize: number; // 函数消耗的内存
     codeType: string; // 函数代码类型
+    package?: string;
     codeUrl?: string; 
     description?: string; // 函数描述
     environmentVariables?: { [prop: string]: any };

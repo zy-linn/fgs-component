@@ -81,7 +81,7 @@ export class FunctionService {
         const functionInfo = props.function;
         const body = new CreateFunctionRequestBody()
             .withFuncName(functionInfo.functionName)
-            .withPackage('default')
+            .withPackage(functionInfo.package || 'default')
             .withRuntime(functionInfo.runtime as CreateFunctionRequestBodyRuntimeEnum)
             .withCodeType((functionInfo.codeType || 'zip') as CreateFunctionRequestBodyCodeTypeEnum)
             .withHandler(functionInfo.handler || 'index.handler')

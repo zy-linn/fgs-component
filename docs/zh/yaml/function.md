@@ -12,6 +12,7 @@ category: 'Yaml规范'
 | functionName          | True  | String     | 函数名称                         |
 | handler          | True  | String     | 函数执行入口，规则：xx.xx，必须包含“. ”   |
 | [runtime](#runtime)           | True  | String     | 运行时   |
+| package          | False  | String     | 函数所属的分组Package，用于用户针对函数的自定义分组，默认为default   |
 | memorySize          | True  | Number     | 函数消耗的内存。 单位M。 取值范围为：128、256、512、768、1024、1280、1536、1792、2048、2560、3072、3584、4096   |
 | timeout          | True  | Number     | 函数执行超时时间，超时函数将被强行停止，范围3～900秒   |
 | [codeType](#code-type)          | True  | String     | 函数代码类型  |
