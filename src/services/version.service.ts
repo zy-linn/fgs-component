@@ -145,7 +145,7 @@ export class VersionService {
             throw new Error('VersionName is required. Please specify with --version-name');
         }
         if (version === 'latest') {
-            throw new Error('版本名称不能为latest.');
+            throw new Error('version name cannot be latest.');
         }
         try {
             this.spin.info(`Deleting version [${version}].`);
