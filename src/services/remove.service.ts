@@ -21,7 +21,6 @@ export class RemoveService {
         logger.debug(`inputs.props: ${JSON.stringify(inputs.props)}`);
         logger.debug(`inputs.args: ${JSON.stringify(inputs.args)}`);
         logger.debug(`inputs.argsObj: ${JSON.stringify(inputs.argsObj)}`);
-        console.log(`inputs: ${JSON.stringify(inputs)}`);
         if (!inputs.credentials.AccessKeyID || !inputs.credentials.SecretAccessKey) {
             throw new Error("Havn't set huaweicloud credentials. Run $s config add .");
         }
