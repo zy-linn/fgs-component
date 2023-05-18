@@ -74,8 +74,8 @@ export class Fun2sService {
 
     async transform(props: IFun2s, client: FunctionClient) {
         try {
-            this.spin.info(`开始转换`);
-            logger.debug(`开始转换`);
+            this.spin.info(`Converting function [${props.functionName}].`);
+            logger.debug(`Converting function [${props.functionName}]`);
             const request = new ShowFunctionConfigRequest().withFunctionUrn(props.urn);
             const result: any = await client.getFunctionClient().showFunctionConfig(request);
             handlerResponse(result);
@@ -90,8 +90,8 @@ Tips for next step
 
             `);
         } catch (error) {
-            this.spin.fail(`转换失败.`);
-            logger.error(`转换失败. err=${(error as Error).message}`);
+            this.spin.fail(`Convert function [${props.functionName}] failed.`);
+            logger.error(`Convert function [${props.functionName}] failed. err=${(error as Error).message}`);
             throw error;
         }
     }

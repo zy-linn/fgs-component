@@ -80,7 +80,7 @@ Function [myFunction] deleted successfully.
 上述命令的执行结果示例：
 
 ```text
-Function [fg-test] deleted successfully.
+Function [fg-test] deleted.
 ```
 
 ## remove trigger 命令
@@ -110,7 +110,7 @@ Function [fg-test] deleted successfully.
 上述命令的执行结果示例：
 
 ```text
-Trigger [fgs-test-trigger] deleted successfully.
+Trigger [fgs-test-trigger] deleted.
 ```
 
 ## remove version 命令
@@ -137,7 +137,7 @@ Trigger [fgs-test-trigger] deleted successfully.
 上述命令的执行结果示例：
 
 ```text
-Version [v1] deleted successfully.
+Version [v1] deleted.
 ```
 
 ## remove alias 命令
@@ -164,5 +164,5 @@ Version [v1] deleted successfully.
 上述命令的执行结果示例：
 
 ```text
-Alias [pre] deleted successfully.
+Alias [pre] deleted.
 ```

@@ -84,6 +84,7 @@ export class AliasService {
         const { client, projectId } = await getFunctionClient(credentials, endProps.region);
 
         endProps.urn = handlerUrn(endProps.region, projectId, 'default', endProps.functionName);
+        logger.debug(`endProps: ${JSON.stringify(endProps)}`);
         return {
             credentials,
             subCommand,
@@ -104,15 +105,17 @@ export class AliasService {
         if (!aliasName) {
             throw new Error('AliasName is required. Please specify with --alias-name');
         }
-        this.spin.info(`开始获取别名[${aliasName}]详情.`);
-        logger.debug(`开始获取别名[${aliasName}]详情.`);
+        this.spin.info(`Querying details about alias [${aliasName}]`);
+        logger.debug(`Querying details about alias [${aliasName}]`);
         try {
             const request = new ShowVersionAliasRequest().withFunctionUrn(urn).withAliasName(aliasName);
             const result = await client.getFunctionClient().showVersionAlias(request);
-            return this.handlerPublish(result);
+            const res = this.handlerPublish(result);
+            logger.debug(`Details about alias [${aliasName}] queried. res = ${JSON.stringify(res)}`);
+            return res;
         } catch (err) {
-            this.spin.fail(`获取别名[${aliasName}]详情失败`);
-            logger.error(`获取别名[${aliasName}]详情失败. err=${(err as Error).message}`);
+            this.spin.fail(`Query details about alias [${aliasName}] failed.`);
+            logger.error(`Query details about alias [${aliasName}] failed.. err=${(err as Error).message}`);
             throw err;
         } finally {
             this.spin.stop();
@@ -127,20 +130,21 @@ export class AliasService {
      * @returns 
      */
     async list(props: IAliasProps, client: FunctionClient, showSpin = true) {
-        showSpin && this.spin.info(`开始获取函数[${props.functionName}]别名列表.`);
-        logger.debug(`开始获取函数[${props.functionName}]别名列表.`);
+        showSpin && this.spin.info(`Querying aliases of function [${props.functionName}].`);
+        logger.debug(`Querying aliases of function [${props.functionName}].`);
         try {
             const request = new ListVersionAliasesRequest().withFunctionUrn(props.urn);
             const result = await client.getFunctionClient().listVersionAliases(request);
             const data = this.handlerList(result);
+            logger.debug(`Querying aliases of function [${props.functionName}]. res = ${JSON.stringify(data)}`);
             if (props.table) {
                 this.showAliasTable(data);
                 return;
             }
             return data;
         } catch (err) {
-            showSpin && this.spin.fail(`获取函数[${props.functionName}]别名列表失败.`);
-            logger.error(`获取函数[${props.functionName}]别名列表失败. err=${(err as Error).message}`);
+            showSpin && this.spin.fail(`Query aliases of function [${props.functionName}] failed.`);
+            logger.error(`Query aliases of function [${props.functionName}] failed. err=${(err as Error).message}`);
             throw err;
         } finally {
             this.spin.stop();
@@ -159,14 +163,15 @@ export class AliasService {
 
         try {
             this.checkPublishParams(aliasName, gVersion, hasWeight);
-            this.spin.info(`开始发布别名[${aliasName}].`);
-            logger.debug(`开始发布别名[${aliasName}].`);
+            this.spin.info(`Publishing alias [${aliasName}].`);
+            logger.debug(`Publishing alias [${aliasName}].`);
             const aliasConfig = await this.findAlias(props, client);
             const result = aliasConfig ? await this.updateAlias(props, client) : await this.createAlias(props, client);
-            return this.handlerPublish(result);
+            const res = this.handlerPublish(result);
+            return res;
         } catch (err) {
-            this.spin.fail(`别名[${aliasName}]发布失败.`);
-            logger.error(`别名[${aliasName}]发布失败. err=${(err as Error).message}`);
+            this.spin.fail(`Publish alias [${aliasName}] failed.`);
+            logger.error(`Publish alias [${aliasName}] failed. err=${(err as Error).message}`);
             throw err;
         } finally {
             this.spin.stop();
@@ -183,15 +188,16 @@ export class AliasService {
             throw new Error('AliasName is required. Please specify with --alias-name');
         }
         try {
-            this.spin.info(`开始删除别名[${aliasName}].`);
-            logger.debug(`开始删除别名[${aliasName}].`);
+            this.spin.info(`Deleting alias [${aliasName}].`);
+            logger.debug(`Deleting alias [${aliasName}].`);
             const request = new DeleteVersionAliasRequest().withFunctionUrn(`${urn}:!${aliasName}`).withAliasName(aliasName);
             const result: any = client.getFunctionClient().deleteVersionAlias(request);
             handlerResponse(result);
-            this.spin.succeed(`别名[${aliasName}]删除成功.`);
+            this.spin.succeed(`Alias [${aliasName}] deleted.`);
+            logger.debug(`Alias [${aliasName}] deleted.`);
         } catch (error) {
-            this.spin.fail(`别名[${aliasName}]删除失败.`);
-            logger.error(`别名[${aliasName}]删除失败. err=${(error as Error).message}`);
+            this.spin.fail(`Delete alias [${aliasName}] failed.`);
+            logger.error(`Delete alias [${aliasName}] failed. err=${(error as Error).message}`);
             throw error;
         }
     }

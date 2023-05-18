@@ -39,10 +39,10 @@ export class TriggerService {
      */
     public async deploy(props: IProperties, client: FunctionClient) {
         if (!props?.trigger) {
-            throw new Error('请先在s.yml中配置触发器信息');
+            throw new Error('First configure triggers in s.yml.');
         }
         if (!this.supportList.includes(props.trigger.triggerTypeCode)) {
-            throw new Error('当前只支持APIG、OBS、TIMER类型的触发器，请重新配置');
+            throw new Error('Only APIG, OBS, and timer triggers available.');
         }
         const triggerType = props.trigger.triggerTypeCode as TypeCode;
         this.triggerType = this.triggerInsMap[triggerType](client, props.trigger, props.function.functionName);
@@ -77,11 +77,11 @@ export class TriggerService {
         }
 
         if (isYml && !triggerInfo) {
-            throw new Error('请先在s.yml中配置触发器信息');
+            throw new Error('First configure triggers in s.yml.');
         }
         try {
-            this.spin.info(`开始删除触发器.`);
-            logger.debug(`开始删除触发器.`);
+            this.spin.info(`Deleting trigger.`);
+            logger.debug(`Deleting trigger.`);
             const type = triggerType ? triggerType : triggerInfo?.triggerTypeCode;
             const funcUrn = version ? `${urn}:${version}` : `${urn}:latest`;
             this.triggerType = this.triggerInsMap[type](client, { ...triggerInfo, triggerTypeCode: type }, functionName);
@@ -93,10 +93,11 @@ export class TriggerService {
             const request = this.triggerType.getDeleteRequest(trigger.trigger_id, funcUrn);
             const result: any = await client.getFunctionClient().deleteFunctionTrigger(request);
             handlerResponse(result);
-            this.spin.succeed(`触发器删除成功.`);
+            this.spin.succeed(`Trigger deleted.`);
+            logger.debug(`Trigger deleted.`);
         } catch (error) {
-            this.spin.fail(`触发器删除失败.`);
-            logger.error(`触发器删除失败. err=${(error as Error).message}`);
+            this.spin.fail(`Delete trigger failed.`);
+            logger.error(`Delete trigger failed. err=${(error as Error).message}`);
             throw error;
         }
     }
@@ -106,16 +107,18 @@ export class TriggerService {
      * @returns 
      */
     private async create(client: FunctionClient, urn = '') {
-        this.spin.info(`开始创建触发器`);
-        logger.debug(`开始创建触发器`);
+        this.spin.info(`Creating trigger.`);
+        logger.debug(`Creating trigger.`);
         try {
             const request = await this.triggerType.getCreateRequest(urn);
             const result: any = await client.getFunctionClient().createFunctionTrigger(request);
             handlerResponse(result);
+            this.spin.succeed(`Trigger created.`);
+            logger.debug(`Trigger created.`);
             return this.handleResponse(result);
         } catch (err) {
-            this.spin.fail(`创建触发器失败.`);
-            logger.error(`创建触发器失败. err=${(err as Error).message}`);
+            this.spin.fail(`Create trigger failed.`);
+            logger.error(`Create trigger failed. err=${(err as Error).message}`);
             throw err;
         }
     }
@@ -126,16 +129,18 @@ export class TriggerService {
      * @returns 
      */
     private async update(client: FunctionClient, triggerId = '', urn = '') {
-        this.spin.info(`开始更新触发器`);
-        logger.debug(`开始更新触发器`);
+        this.spin.info(`Updating trigger.`);
+        logger.debug(`Updating trigger.`);
         try {
             const request = this.triggerType.getUpdateRequest(triggerId, this.triggerType.triggerStatus, urn);
             const result: any = await client.getFunctionClient().updateTrigger(request);
             handlerResponse(result);
+            this.spin.succeed(`Trigger updated.`);
+            logger.debug(`Trigger updated.`);
             return this.handleResponse(result);
         } catch (err) {
-            this.spin.fail(`更新触发器失败.`);
-            logger.error(`更新触发器失败. err=${(err as Error).message}`);
+            this.spin.fail(`Update trigger failed.`);
+            logger.error(`Update trigger failed. err=${(err as Error).message}`);
             throw err;
         }
     }
@@ -361,11 +366,11 @@ export class ApigTrigger extends Trigger {
         if (group) {
             return group;
         }
-        let msg = `分组[${groupName}]不存在。`;
-        const suffix = '\n是否创建？';
+        let msg = `Group [${groupName}] not found.`;
+        const suffix = '\nCreate now?';
         if (groups.length > 0) {
             tableShow(groups.slice(0, 20), ['name', 'id']);
-            msg += `\n您可以选择存在的分组或新建[${groupName}]分组。`;
+            msg += `\nSelect an existing group or create one named [${groupName}].`;
         }
         if (await promptForConfirmOrDetails(`${msg}${suffix}`)) {
             const result = await this.apigClient.createApiGroup(groupName);

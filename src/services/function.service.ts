@@ -38,13 +38,13 @@ export class FunctionService {
     async deploy(props: IProperties, client: FunctionGraphClient) {
         try {
             if (!props.function) {
-                throw new Error('请先在s.yml中配置函数信息');
+                throw new Error('First configure the function in s.yml.');
             }
             if (!props.function.agencyName && (props.function.vpcId || props.function.subnetId)) {
-                throw new Error('请先在s.yml中配置函数的委托名称');
+                throw new Error('First configure the function agency in s.yml.');
             }
             if (props.function.codeType === 'obs' && !props.function.codeUrl) {
-                throw new Error('请先在s.yml中配置函数函数代码包在OBS上的地址');
+                throw new Error('First configure the OBS link URL for the function code package in s.yml.');
             }
             const isExist = await this.config(client, props.urn);
             const response = isExist ? await this.update(props, client, this.metaData) : await this.create(props, client);
@@ -59,16 +59,17 @@ export class FunctionService {
      * @returns 
      */
     async remove({ functionName, urn }: IRemoveProps, client: FunctionGraphClient) {
-        this.spin.info(`开始删除函数[${functionName}].`);
-        logger.debug(`开始删除函数[${functionName}].`);
+        this.spin.info(`Deleting function [${functionName}].`);
+        logger.debug(`Deleting function [${functionName}].`);
         try {
             const request = new DeleteFunctionRequest().withFunctionUrn(urn);
             const result: any = await client.deleteFunction(request);
             handlerResponse(result);
-            this.spin.succeed(`函数[${functionName}]删除成功.`);
+            this.spin.succeed(`Function [${functionName}] deleted.`);
+            logger.debug(`Function [${functionName}] deleted.`);
         } catch (error) {
-            this.spin.fail(`函数[${functionName}]删除失败.`);
-            logger.error(`函数[${functionName}]删除失败. err=${(error as Error).message}`);
+            this.spin.fail(`Delete function [${functionName}] failed.`);
+            logger.error(`Delete function [${functionName}] failed. err=${(error as Error).message}`);
             throw error;
         }
     }
@@ -102,7 +103,8 @@ export class FunctionService {
             this.spin.succeed("File compression completed");
             body.withFuncCode(new FuncCode().withFile(zipFile))
         }
-        this.spin.info(`Start creating function ${functionInfo.functionName}.`);
+        this.spin.info(`Creating function [${functionInfo.functionName}].`);
+        logger.debug(`Creating function [${functionInfo.functionName}].`);
         try {
             const result: any = await client.createFunction(new CreateFunctionRequest().withBody(body));
             handlerResponse(result);
@@ -110,9 +112,12 @@ export class FunctionService {
                 || (functionInfo.concurrency && functionInfo.concurrency !== result.strategy_config?.concurrency)) { // 更新最大实例数
                 await this.updateConfig(props, client, result);
             }
+            this.spin.succeed(`Function [${functionInfo.functionName}] created.`);
+            logger.debug(`Function [${functionInfo.functionName}] created.`);
             return result;
         } catch (error) {
-            this.spin.fail(`Failed to create Function ${functionInfo.functionName}.`);
+            this.spin.fail(`Create function [${functionInfo.functionName}] failed.`);
+            logger.error(`Create function [${functionInfo.functionName}] failed. err=${(error as Error).message}`);
             throw error;
         }
     }
@@ -136,8 +141,8 @@ export class FunctionService {
      * @returns 
      */
     private async updateCode(props: IProperties, client: FunctionGraphClient, config: IFunctionResult) {
-        this.spin.info(`开始更新函数[${props.function.functionName}]代码.`);
-        logger.debug(`开始更新函数[${props.function.functionName}]代码.`);
+        this.spin.info(`Updating the code of function [${props.function.functionName}].`);
+        logger.debug(`Updating the code of function [${props.function.functionName}].`);
         try {
             const body = new UpdateFunctionCodeRequestBody()
                 .withCodeType(props.function.codeType as UpdateFunctionCodeRequestBodyCodeTypeEnum)
@@ -152,11 +157,11 @@ export class FunctionService {
 
             const result: any = await client.updateFunctionCode(new UpdateFunctionCodeRequest().withBody(body).withFunctionUrn(config.func_urn));
             handlerResponse(result);
-            this.spin.succeed(`函数[${props.function.functionName}]代码更新成功.`);
-            logger.debug(`函数[${props.function.functionName}]代码更新成功.`);
+            this.spin.succeed(`Code of function [${props.function.functionName}] updated.`);
+            logger.debug(`Code of function [${props.function.functionName}] updated.`);
         } catch (error) {
-            this.spin.fail(`函数[${props.function.functionName}]代码更新失败.`);
-            logger.error(`函数[${props.function.functionName}]代码更新失败. err=${(error as Error).message}`);
+            this.spin.fail(`Update code of function [${props.function.functionName}] failed.`);
+            logger.error(`Update code of function [${props.function.functionName}] failed. err=${(error as Error).message}`);
             throw error;
         }
     }
@@ -168,18 +173,18 @@ export class FunctionService {
      * @param config 
      */
     private async updateConfig(props: IProperties, client: FunctionGraphClient, config: IFunctionResult) {
-        this.spin.info(`开始更新函数[${props.function.functionName}]配置.`);
-        logger.debug(`开始更新函数[${props.function.functionName}]配置.`);
+        this.spin.info(`Updating configurations of function [${props.function.functionName}].`);
+        logger.debug(`Updating configurations of function [${props.function.functionName}].`);
         try {
             const body = this.getConfigRequestBody(props.function, config);
             const request = new UpdateFunctionConfigRequest().withFunctionUrn(props.urn).withBody(body);
             const result: any = client.updateFunctionConfig(request);
             handlerResponse(result);
-            this.spin.succeed(`函数[${props.function.functionName}]配置更新成功.`);
-            logger.debug(`函数[${props.function.functionName}]配置更新成功.`);
+            this.spin.succeed(`Configurations of function [${props.function.functionName}] updated.`);
+            logger.debug(`Configurations of function [${props.function.functionName}] updated.`);
         } catch (error) {
-            this.spin.fail(`函数[${props.function.functionName}]配置更新失败.`);
-            logger.error(`函数[${props.function.functionName}]配置更新失败. err=${(error as Error).message}`);
+            this.spin.fail(`Update configurations of function [${props.function.functionName}] failed.`);
+            logger.error(`Update configurations of function [${props.function.functionName}] failed. err=${(error as Error).message}`);
             throw error;
         }
 

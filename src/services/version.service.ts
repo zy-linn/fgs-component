@@ -76,6 +76,7 @@ export class VersionService {
         const { client, projectId } = await getFunctionClient(credentials, endProps.region);
 
         endProps.urn = handlerUrn(endProps.region, projectId, 'default', endProps.functionName, endProps.version);
+        logger.debug(`endProps: ${JSON.stringify(endProps)}`);
         return {
             subCommand,
             props: endProps,
@@ -90,20 +91,21 @@ export class VersionService {
      * @returns 
      */
     async list(props: IVersion, client: FunctionClient) {
-        this.spin.info(`开始获取函数[${props.functionName}]的版本列表.`);
-        logger.debug(`开始获取函数[${props.functionName}]的版本列表.`);
+        this.spin.info(`Querying versions of function [${props.functionName}].`);
+        logger.debug(`Querying versions of function [${props.functionName}].`);
         try {
             const request = new ListFunctionVersionsRequest().withFunctionUrn(props.urn);
             const result = await client.getFunctionClient().listFunctionVersions(request);
             const data = this.handlerList(result);
+            logger.debug(`Versions of function [${props.functionName}] queried. res = ${JSON.stringify(data)}`);
             if (props.table) {
                 tableShow(data, ['version', 'description', 'lastModifiedTime']);
                 return;
             }
             return data;
         } catch (err) {
-            this.spin.fail(`获取函数[${props.functionName}]的版本列表失败.`);
-            logger.error(`获取函数[${props.functionName}]的版本列表失败. err=${(err as Error).message}`);
+            this.spin.fail(`Query versions of function [${props.functionName}] failed.`);
+            logger.error(`Query versions of function [${props.functionName}] failed. err=${(err as Error).message}`);
             throw err;
         }
 
@@ -116,8 +118,8 @@ export class VersionService {
      * @returns 
      */
     async publish(props: IVersion, client: FunctionClient) {
-        this.spin.info(`开始发布函数[${props.functionName}]版本.`);
-        logger.debug(`开始发布函数[${props.functionName}]版本.`);
+        this.spin.info(`Publishing version of function [${props.functionName}].`);
+        logger.debug(`Publishing version of function [${props.functionName}].`);
         try {
             const request = new CreateFunctionVersionRequest().withFunctionUrn(props.urn);
             const body = new CreateFunctionVersionRequestBody();
@@ -127,8 +129,8 @@ export class VersionService {
             const result = await client.getFunctionClient().createFunctionVersion(request);
             return this.handlerPublish(result);
         } catch (err) {
-            this.spin.fail(`函数[${props.functionName}]版本发布失败.`);
-            logger.error(`函数[${props.functionName}]版本发布失败. err=${(err as Error).message}`);
+            this.spin.fail(`Publish version of function [${props.functionName}] failed.`);
+            logger.error(`Publish version of function [${props.functionName}] failed. err=${(err as Error).message}`);
             throw err;
         }
     }
@@ -146,15 +148,15 @@ export class VersionService {
             throw new Error('版本名称不能为latest.');
         }
         try {
-            this.spin.info(`开始删除版本[${version}].`);
-            logger.debug(`开始删除版本[${version}].`);
+            this.spin.info(`Deleting version [${version}].`);
+            logger.debug(`Deleting version [${version}].`);
             const request = new DeleteFunctionRequest().withFunctionUrn(`${urn}:${version}`);
             const result: any = await client.getFunctionClient().deleteFunction(request);
             handlerResponse(result);
-            this.spin.succeed(`版本[${version}]删除成功.`);
+            this.spin.succeed(`Version [${version}] deleted.`);
         } catch (error) {
-            this.spin.fail(`版本[${version}]删除失败`);
-            logger.error(`版本[${version}]删除失败. err=${(error as Error).message}`);
+            this.spin.fail(`Delete version [${version}] failed.`);
+            logger.error(`Delete version [${version}] failed. err=${(error as Error).message}`);
             throw error;
         }
     }
