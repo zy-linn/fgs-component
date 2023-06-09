@@ -124,7 +124,7 @@ export class VersionService {
             const request = new CreateFunctionVersionRequest().withFunctionUrn(props.urn);
             const body = new CreateFunctionVersionRequestBody();
             props.version && body.withVersion(props.version);
-            props.description && body.withDescription(props.version);
+            props.description && body.withDescription(props.description);
             request.withBody(body);
             const result = await client.getFunctionClient().createFunctionVersion(request);
             return this.handlerPublish(result);
