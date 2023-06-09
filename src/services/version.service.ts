@@ -33,7 +33,7 @@ export class VersionService {
 
         const parsedArgs: { [key: string]: any } = commandParse(inputs, {
             boolean: ["help", "table"],
-            string: ['region', 'function-name', 'version', 'description'],
+            string: ['region', 'function-name', 'version-name', 'description'],
             alias: { help: "h" },
         });
 
@@ -57,7 +57,7 @@ export class VersionService {
         const endProps: IVersion = {
             region: parsedData.region || props?.region,
             functionName: parsedData['function-name'] || props?.function?.functionName,
-            version: parsedData.version,
+            version: parsedData['version-name'],
             description: parsedData.description,
             table: parsedData.table ?? false,
             isYml: isYml(inputs.path.configPath)

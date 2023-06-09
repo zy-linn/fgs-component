@@ -127,7 +127,7 @@ fg-test:
 | region         | -        | 选填            | 必填           | 地区     |
 | function-name  | -        | 选填            | 必填           | 函数数名 |
 | alias-name     | -        | 必填            | 必填           | 别名   |
-| version        | -        | 选填            | 必填           | 别名对应的版本名称   |
+| version-name   | -        | 选填            | 必填           | 别名对应的版本名称   |
 | description    | -        | 选填            | 选填           | 别名描述    |
 | gversion       | -        | 选填            | 选填           | 灰度版本 Id。灰度版本权重填写时必填      |
 | weight         | -        | 选填            | 选填           | 灰度版本权重。灰度版本 Id 填写时必填    |
@@ -137,10 +137,10 @@ fg-test:
 ### 操作案例
 
 - **有资源描述文件（Yaml）时**，可以直接执行`s alias publish`进行版本的发布或者更新；
-- **纯命令行形式（在没有资源描述 Yaml 文件时）**，需要指定服务所在地区以及服务名称，例如` s cli fgs alias publish --region cn-north-4 --function-name fg-test --alias-name pre --version-id 1`；
+- **纯命令行形式（在没有资源描述 Yaml 文件时）**，需要指定服务所在地区以及服务名称，例如` s cli fgs alias publish --region cn-north-4 --function-name fg-test --alias-name pre --version-name 1`；
 
 > ⚠️ 注意：    
-> - 执行`cli` 模式时，如果密钥信息不是`default`，需要添加 `access`参数，例如`s cli fgs alias publish --region cn-north-4 --function-name fg-test --alias-name pre --version-id 1 --access xxxx`
+> - 执行`cli` 模式时，如果密钥信息不是`default`，需要添加 `access`参数，例如`s cli fgs alias publish --region cn-north-4 --function-name fg-test --alias-name pre --version-name 1 --access xxxx`
 
 上述命令的执行结果示例：
 

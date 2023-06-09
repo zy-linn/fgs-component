@@ -39,7 +39,7 @@ export class AliasService {
 
         const parsedArgs: { [key: string]: any } = commandParse(inputs, {
             boolean: ["help", 'table'],
-            string: ['region', 'function-name', 'alias-name', 'version', 'description', 'gversion', 'weight'],
+            string: ['region', 'function-name', 'alias-name', 'version-name', 'description', 'gversion', 'weight'],
             alias: { help: "h" },
         });
 
@@ -65,7 +65,7 @@ export class AliasService {
             functionName: parsedData['function-name'] || props.function?.functionName,
             aliasName: parsedData['alias-name'],
             urn: '',
-            version: parsedData.version ?? 'latest',
+            version: parsedData['version-name'] ?? 'latest',
             gVersion: parsedData.gversion,
             weight: parseInt(parsedData.weight),
             description: parsedData.description,
@@ -159,7 +159,7 @@ export class AliasService {
      */
     async publish(props: IAliasProps, client: FunctionClient) {
         const { weight, gVersion, aliasName } = props;
-        const hasWeight = typeof weight === 'number';
+        const hasWeight = !isNaN(weight);
 
         try {
             this.checkPublishParams(aliasName, gVersion, hasWeight);
@@ -190,8 +190,8 @@ export class AliasService {
         try {
             this.spin.info(`Deleting alias [${aliasName}].`);
             logger.debug(`Deleting alias [${aliasName}].`);
-            const request = new DeleteVersionAliasRequest().withFunctionUrn(`${urn}:!${aliasName}`).withAliasName(aliasName);
-            const result: any = client.getFunctionClient().deleteVersionAlias(request);
+            const request = new DeleteVersionAliasRequest().withFunctionUrn(urn).withAliasName(aliasName);
+            const result: any = await client.getFunctionClient().deleteVersionAlias(request);
             handlerResponse(result);
             this.spin.succeed(`Alias [${aliasName}] deleted.`);
             logger.debug(`Alias [${aliasName}] deleted.`);
@@ -242,7 +242,8 @@ export class AliasService {
      * @returns 
      */
     private async createAlias(props: IAliasProps, client: FunctionClient) {
-        const hasWeight = typeof props.weight === 'number';
+        logger.debug(`createAlias: ${JSON.stringify(props)}`);
+        const hasWeight = !isNaN(props.weight);
         const body = new CreateVersionAliasRequestBody().withName(props.aliasName).withVersion(props.version);
         props.description && body.withDescription(props.description);
         hasWeight && body.withAdditionalVersionWeights({ [props.gVersion]: props.weight });
@@ -257,7 +258,8 @@ export class AliasService {
      * @returns 
      */
     private async updateAlias(props: IAliasProps, client: FunctionClient) {
-        const hasWeight = typeof props.weight === 'number';
+        logger.debug(`updateAlias: ${JSON.stringify(props)}`);
+        const hasWeight = !isNaN(props.weight);
         const body = new UpdateVersionAliasRequestBody().withVersion(props.version);
         props.description && body.withDescription(props.description);
         hasWeight && body.withAdditionalVersionWeights({ [props.gVersion]: props.weight });

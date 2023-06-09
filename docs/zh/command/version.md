@@ -85,16 +85,16 @@ fg-test:
 | --------------------- | -------- | --------------- | -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | region                | -        | 选填            | 必填           | 地区      |
 | function-name         | -        | 选填            | 必填           | 函数名称  |
-| version               | -        | 选填            | 选填           | 版本号    |
+| version-name               | -        | 选填            | 选填           | 版本号    |
 | description           | -        | 选填            | 选填           | 版本描述  |
 
 ### 操作案例
 
 - **有资源描述文件（Yaml）时**，可以直接执行`s version publish`进行版本的发布；
-- **纯命令行形式（在没有资源描述 Yaml 文件时）**，需要指定服务所在地区以及服务名称，例如`s cli fgs version publish --region cn-north-4 --function-name fg-test --version 1 --description "test publish version"`；
+- **纯命令行形式（在没有资源描述 Yaml 文件时）**，需要指定服务所在地区以及服务名称，例如`s cli fgs version publish --region cn-north-4 --function-name fg-test --version-name 1 --description "test publish version"`；
 
 > ⚠️ 注意：    
-> - 执行`cli` 模式时，如果密钥信息不是`default`，需要添加 `access`参数，例如`s cli fgs version publish --region cn-north-4 --function-name fg-test --version 1 --description "test publish version" --access xxxx`
+> - 执行`cli` 模式时，如果密钥信息不是`default`，需要添加 `access`参数，例如`s cli fgs version publish --region cn-north-4 --function-name fg-test --version-name 1 --description "test publish version" --access xxxx`
 
 
 上述命令的执行结果示例：
