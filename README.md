@@ -3,7 +3,7 @@
 是一个用于支持华为云函数应用生命周期的工具，基于[Serverless Devs](https://www.serverless-devs.com/)进行开发，通过配置资源配置文件`s.yaml`，您可以简单快速地部署应用到[华为云函数计算平台](https://www.huaweicloud.com/product/functiongraph.html)。
 
 ## 前提
-先本地安装nodejs，具体按照流程可参考[安装Nodejs](https://zhuanlan.zhihu.com/p/442215189)
+先本地安装nodejs
 
 ## 快速开始
 ❶ [安装 Serverless Devs 开发者工具](https://github.com/Serverless-Devs/Serverless-Devs/blob/master/docs/zh/install.md) ：`npm install -g @serverless-devs/s`； 
