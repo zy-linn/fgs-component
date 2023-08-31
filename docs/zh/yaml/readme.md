@@ -1,9 +1,3 @@
----
-title: Yaml规范
-description: 'Yaml规范说明'
-position: 1
-category: 'Yaml规范'
----
 
 # 字段解析
 
