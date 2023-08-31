@@ -1,10 +1,3 @@
----
-title: triggers字段
-description: 'triggers字段'
-position: 4
-category: 'Yaml规范'
----
-
 ## trigger 字段
 
 | 参数名    | 必填  | 类型   | 参数描述                                                                                                                                                                                                                   |
