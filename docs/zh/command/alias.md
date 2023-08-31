@@ -129,7 +129,7 @@ fg-test:
 
 ### 操作案例
 
-- **有资源描述文件（Yaml）时**，可以直接执行`s alias publish`进行版本的发布或者更新；
+- **有资源描述文件（Yaml）时**，可以直接执行`s alias publish`进行别名的发布或者更新；
 - **纯命令行形式（在没有资源描述 Yaml 文件时）**，需要指定服务所在地区以及服务名称，例如` s cli fgs alias publish --region cn-north-4 --function-name fg-test --alias-name pre --version-name 1`；
 
 > ⚠️ 注意：    
