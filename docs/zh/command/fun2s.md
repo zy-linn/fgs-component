@@ -1,10 +1,3 @@
----
-title: Fun项目迁移 fun2s
-description: 'Fun项目迁移 fun2s'
-position: 2
-category: '其他功能'
----
-
 # Fun2s 命令
 
 `fun2s` 命令是将函数的配置信息转换成 Serverless Devs 所识别的 `s.yaml`的命令。
