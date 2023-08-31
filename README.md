@@ -1,4 +1,4 @@
-# 华为云函数计算（FG）组件
+# 华为云函数计算（FunctionGraph）组件
 ## 组件说明
 是一个用于支持华为云函数应用生命周期的工具，基于[Serverless Devs](https://www.serverless-devs.com/)进行开发，通过配置资源配置文件`s.yaml`，您可以简单快速地部署应用到[华为云函数计算平台](https://www.huaweicloud.com/product/functiongraph.html)。
 
