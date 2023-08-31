@@ -1,10 +1,3 @@
----
-title: 别名 alias
-description: '别名 alias'
-position: 2
-category: '发布&配置'
----
-
 # Alias 命令
 
 `alias` 命令是对函数别名操作的命令；主要包括别名的查看、发布、修改、删除等功能。
@@ -26,7 +19,7 @@ category: '发布&配置'
 
 当执行命令`alias -h`/`alias --help`时，可以获取帮助文档。
 
-在该命令中，包括了四个子命令：
+在该命令中，包括了三个子命令：
 
 - [get：查看指定别名详情](#alias-get-命令)
 - [list：获取别名列表](#alias-list-命令)
