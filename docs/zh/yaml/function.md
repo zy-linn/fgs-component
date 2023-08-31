@@ -1,10 +1,3 @@
----
-title: function字段
-description: 'function字段'
-position: 3
-category: 'Yaml规范'
----
-
 ## function 字段
 
 | 参数名                                              | 必填  | 类型                               | 参数描述                                                               |
