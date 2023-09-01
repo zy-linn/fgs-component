@@ -16,17 +16,17 @@ triggerTypeCode 目前支持：`APIG`、`OBS`、`TIMER`
 | name              | False | String            | API名称，默认使用函数名             |
 | groupName         | False | String           | 分组，默认选择当前第一个                   |
 | auth              | False | [Enum](#auth)           | 安全认证，默认为 `IAM`                    |
-| prtocol           | False | [Enum](#prtocol)           | 请求协议，默认为 `HTTPS`                    |
+| protocol           | False | [Enum](#protocol)           | 请求协议，默认为 `HTTPS`                    |
 | timeout           | False | Number           | 后端超时时间，单位为毫秒，取值范围为 1 ~ 60000。默认为 `5000`      |
 
-#### Auth
+#### auth
 API认证方式：
 
 - App： 采用Appkey&Appsecret认证，安全级别高，推荐使用，详情请[参见APP认证](https://support.huaweicloud.com/devg-apig/apig-dev-180907066.html)。
 - IAM： IAM认证，只允许IAM用户能访问，安全级别中等，详情请[参见IAM认证](https://support.huaweicloud.com/devg-apig/apig-dev-180307020.html)。
 - None： 无认证模式，所有用户均可访问。
 
-#### Prtocol
+#### protocol
 分为两种类型：
 
 - HTTP
