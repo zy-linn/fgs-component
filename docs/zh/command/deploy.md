@@ -1,4 +1,4 @@
-# Deploy 命令
+# deploy 命令
 
 `deploy` 命令是对函数资源进行部署的命令，即将本地在  [`Yaml` 文件](../yaml/readme.md) 中声明的资源部署到线上。
 
@@ -55,7 +55,7 @@ fgs-deploy-test:
             name: APIG_test
             groupName: APIGroup_xxx
             auth: IAM
-            prtocol: HTTPS
+            protocol: HTTPS
             timeout: 5000
 ```
 
