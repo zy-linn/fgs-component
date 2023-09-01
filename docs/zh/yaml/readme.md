@@ -5,7 +5,7 @@
 | ----------------------------------- | ----- | ---------------------------- | ---------- |
 | region                              | True  | Enum                         | 地域       |
 | [function](./function.md)           | True | [Struct](./function.md)      | 函数       |
-| [triggers](./triggers.md)           | False | [Struct](./triggers.md)      | 触发器     |
+| [trigger](./trigger.md)           | False | [Struct](./trigger.md)      | 触发器     |
 
 # Yaml 完整配置
 
@@ -51,5 +51,5 @@ services:
                     name: APIG_test  # API名称
                     groupName: APIGroup_xxx # 分组名称
                     auth: IAM # 安全认证
-                    prtocol: HTTPS # 请求协议
+                    protocol: HTTPS # 请求协议
                     timeout: 5000 # 后端超时时间
