@@ -1,4 +1,4 @@
-# Fun2s 命令
+# fun2s 命令
 
 `fun2s` 命令是将函数的配置信息转换成 Serverless Devs 所识别的 `s.yaml`的命令。
 
