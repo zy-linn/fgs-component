@@ -31,12 +31,6 @@
 - [version：删除指定的版本](#remove-version-命令)
 - [alias：删除指定的别名](#remove-alias-命令)
 
-### 参数解析
-
-| 参数全称   | 参数缩写 | Yaml模式下必填 | 参数含义                                                     |
-| ---------- | -------- | -------------- | ------------------------------------------------------------ |
-| assume-yes | y        | 选填           | 在交互时，默认选择`y`                                        |
-
 
 ### 操作案例
 
@@ -58,7 +52,6 @@ Function [myFunction] deleted successfully.
 | ------------ | -------- | -------------- | ------------- | ------------------------------------------------------------ |
 | region       | -        | 选填           | 必填          | 地区 |
 | function-name | -        | 选填           | 必填          | 函数名                                                       |
-| assume-yes   | y        | 选填           | 选填          | 在交互时，默认选择`y`            |
 
 > 当前命令还支持部分全局参数（例如`-a/--access`, `--debug`等），详情可参考 [Serverless Devs 全局参数文档](https://serverless-devs.com/serverless-devs/command/readme#全局参数)
 
@@ -91,7 +84,6 @@ Function [fg-test] deleted.
 | version-name | -        | 选填           | 选填          | 指定版本，不设置默认为latest版本      |
 | trigger-type | -        | 选填           | 必填          | 触发器类型      |
 | trigger-name | -        | 选填           | 必填          | 触发器名，`APIG` 为 API名称， `OBS` 为 桶名， `TIMER`  为 触发器名称   |
-| assume-yes   | y        | 选填           | 选填          | 在交互时，默认选择`y` |
 
 > 当前命令还支持部分全局参数（例如`-a/--access`, `--debug`等），详情可参考 [Serverless Devs 全局参数文档](https://serverless-devs.com/serverless-devs/command/readme#全局参数)
 
