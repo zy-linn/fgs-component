@@ -42,7 +42,7 @@ trigger:
         name: APIG_test
         groupName: APIGroup_xxx
         auth: IAM
-        prtocol: HTTPS
+        protocol: HTTPS
         timeout: 5000
 ```
 

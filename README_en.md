@@ -6,7 +6,7 @@ This is a function application lifecycle management tool developed based on [Ser
 Install Node.js on your local PC.
 
 ## Getting Started
-1. [Install the Serverless Devs developer tool](https://github.com/Serverless-Devs/Serverless-Devs/blob/master/docs/en/install.md) by running `npm install -g @serverless-devs/s`.
+1. [Install the Serverless Devs developer tool](https://docs.serverless-devs.com/en/serverless-devs/install) by running `npm install -g @serverless-devs/s`.
 > After the installation is complete, configure a key by referring to the [instructions](./docs/en/config.md).  
 
 2. Initialize a `Hello World` project by running `s init start-fg-http-nodejs14`.
@@ -19,7 +19,7 @@ Huawei Cloud FunctionGraph component has the following capabilities.
 
 | Build & Deploy| Publish & Config |  Other|
 | --- | --- | --- |
-| [deploy](docs/en/command/deploy.md)  |  [version](docs/en/command/version.md)     | [fun2s] (docs/en/command/fun2s.md)| 
+| [deploy](docs/en/command/deploy.md)  |  [version](docs/en/command/version.md)     | [fun2s](docs/en/command/fun2s.md)| 
 | [remove](docs/en/command/remove.md)  |  [alias](docs/en/command/alias.md)    |  | 
 
 When using the FunctionGraph component, you will need to compile a YAML resource description file. For details, see [**Huawei Cloud FunctionGraph YAML Specifications**](docs/en/yaml/readme.md).
