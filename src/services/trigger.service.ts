@@ -334,7 +334,7 @@ export class ApigTrigger extends Trigger {
                     timeout: eventData.timeout ?? 5000
                 },
                 auth: eventData.auth ?? 'IAM',
-                protocol: eventData.prtocol ?? 'HTTPS',
+                protocol: eventData.protocol ?? 'HTTPS',
                 env_id: "DEFAULT_ENVIRONMENT_RELEASE_ID",
                 env_name: "RELEASE",
                 match_mode: "SWA",

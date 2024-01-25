@@ -4,7 +4,7 @@ export enum Auth {
     NONE = 'None'
 }
 
-export enum Prtocol {
+export enum protocol {
     HTTP = 'HTTP',
     HTTPS = 'HTTPS'
 }
@@ -18,7 +18,7 @@ export interface IApigProps {
     name?: string;
     groupName?: string;
     auth?: Auth;
-    prtocol?: Prtocol;
+    protocol?: protocol;
     timeout?: number;
 }
 
