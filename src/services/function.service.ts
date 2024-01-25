@@ -570,7 +570,7 @@ export class FunctionService {
   }
 
   private async createTags(props: IProperties, client: FunctionGraphClient) {
-    const tag = props.service.name
+    const tag = props.service?.name
     if(!tag) {
         return
     }
