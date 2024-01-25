@@ -570,8 +570,12 @@ export class FunctionService {
   }
 
   private async createTags(props: IProperties, client: FunctionGraphClient) {
+    const tag = props.service?.name
+    if(!tag) {
+        return
+    }
     const { tags } = await this.getTags(props.urn, client);
-    if (tags.some((v) => v.key === props.tag)) {
+    if (tags.some((v) => v.key === tag)) {
       return;
     }
     try {
@@ -581,7 +585,7 @@ export class FunctionService {
       req.withResourceId(props.urn);
       const body = new UpdateFunctionTagsRequestBody();
       body.withAction("create");
-      const kvItem = new KvItem().withKey(props.tag).withValue(props.tag);
+      const kvItem = new KvItem().withKey(tag).withValue(tag);
       body.withTags([kvItem]);
       req.withBody(body);
       client.createTags(req);

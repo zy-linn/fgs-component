@@ -21,10 +21,9 @@ export default class ComponentDemo {
       if (isHelp) {
         return;
       }
-      // 项目名称作为默认标签
       const deployInfo = await service.deploy(
         subCommand,
-        { tag: inputs.project.projectName, ...props },
+        props,
         client
       );
       help(deployInfo);
