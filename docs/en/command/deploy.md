@@ -54,7 +54,7 @@ fgs-deploy-test:
         eventData:
             name: APIG_test
             groupName: APIGroup_xxx
-            auth: NONE # IAM
+            auth: NONE
             protocol: HTTPS
             timeout: 5000
 ```
