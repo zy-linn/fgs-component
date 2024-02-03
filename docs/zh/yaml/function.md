@@ -42,7 +42,7 @@ function:
 
 runtime 目前支持
 
-`Node.js14.18`、`Node.js12.13`、`Node.js10.16`、`Node.js8.10`、`nodejs6`、`nodejs4.4`  
+`Node.js18.15`、`Node.js16.17`、`Node.js14.18`、`Node.js12.13`、`Node.js10.16`、`Node.js8.10`、`nodejs6`、`nodejs4.4`  
 `Python3.9`、`Python3.6`、`Python2.7`
 `Java11`、`Java8`  
 `Go1.x`、`Go1.8`  
