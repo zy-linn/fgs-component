@@ -15,7 +15,7 @@ triggerTypeCode supports `APIG`, `OBS`, and `TIMER`.
 | ----------------- | ---- | ----------------- | --------------------------------------------- |
 | name              | False | String            | API name. The function name is used by default.            |
 | groupName         | False | String           | Group. The first one is selected by default.                  |
-| auth              | False | [Enum](#auth)           | Authentication mode. Default: `IAM`.                   |
+| auth              | False | [Enum](#auth)           | Authentication mode. Default: `NONE`.                   |
 | protocol           | False | [Enum](#protocol)           | Request protocol. Default: `HTTPS`.                   |
 | timeout           | False | Number           | Backend timeout in milliseconds. Range: 1–60,000. Default: `5000`.     |
 
