@@ -50,6 +50,6 @@ services:
                 eventData: # 触发器配置 
                     name: APIG_test  # API名称
                     groupName: APIGroup_xxx # 分组名称
-                    auth: IAM # 安全认证
+                    auth: NONE # 安全认证
                     protocol: HTTPS # 请求协议
                     timeout: 5000 # 后端超时时间
