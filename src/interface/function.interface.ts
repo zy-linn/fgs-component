@@ -61,7 +61,7 @@ export interface NetConfig {
 
 export interface ConcurrencyConfig {
   concurreny?: number;
-  concurrenyNum?: number;
+  concurrentNum?: number;
 }
 
 export interface LogConfig {

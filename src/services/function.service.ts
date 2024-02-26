@@ -511,7 +511,7 @@ export class FunctionService {
       newData.concurreny ?? oldData.strategy_config.concurrency
     );
     strategyConf.withConcurrentNum(
-      newData.concurrenyNum ?? oldData.strategy_config.concurrent_num
+      newData.concurrentNum ?? oldData.strategy_config.concurrent_num
     );
     body.withStrategyConfig(strategyConf);
   }
