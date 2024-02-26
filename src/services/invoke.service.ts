@@ -90,11 +90,9 @@ export class InvokeService {
             this.spin.succeed(`Function [${props.functionName}] invoke success.`);
             logger.log("========= FGS invoke Logs begin =========");
             logger.log(result.log);
-            logger.log("========= FGS invoke Logs end =========");
-            logger.log("\n");
+            logger.log("========= FGS invoke Logs end =========\n");
             logger.log(`FGS Invoke Result[code: ${result.status}]`);
-            const res = JSON.stringify(result.result, null, 4);
-            logger.log(res);
+            logger.log(result.result);
         } catch (err) {
             this.spin.fail(`Invoke function [${props.functionName}] failed.`);
             logger.error(`Invoke function [${props.functionName}] failed. err=${(err as Error).message}`);
