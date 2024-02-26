@@ -12,7 +12,7 @@
 | codeUrl          | False  | String     | 当CodeType为obs时，该值为函数代码包在OBS上的地址，CodeType为其他值时，该字段为空。  |
 | userData(别名environmentVariables)       | False | [Struct](#environment-variables)    | 环境变量。最多定义20个，总长度不超过4KB |
 | xrole(别名agencyName)          | False  | String     | 委托名称，需要IAM支持，并在IAM界面创建委托，当函数需要访问其他服务时，必须提供该字段  |
-| funcVpc          | False  | [Struct](#function-vpc)     | 虚拟私有云唯一标识。配置时，agencyName必填。https://console.huaweicloud.com/vpc/#/vpc/vpcs/list  |
+| funcVpc          | False  | [Struct](#func-vpc)     | 虚拟私有云唯一标识。配置时，agencyName必填。https://console.huaweicloud.com/vpc/#/vpc/vpcs/list  |
 | domainNames          | False  | String     | 内网域名配置，更新函数时生效  |
 | dependVersionList          | False  | List\<String\>        | 依赖包，取依赖包的ID  |
 | code          | False  | [Struct](#func-code)        | 本地代码地址，当CodeType为zip时，必填  |
