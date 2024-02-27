@@ -36,6 +36,7 @@
 2024-02-26T09:01:14Z Start invoke request 'e77adbf0-8042-45a7-a6af-6452d99cff88', version: latest
 2024-02-26T09:01:14Z Finish invoke request 'e77adbf0-8042-45a7-a6af-6452d99cff88', duration: 85.482ms, billing duration: 86ms, memory used: 32.473MB, billing memory: 128MB, cpu used: 0.300U, storage used: 0.039MB
 ========= FGS invoke Logs end =========
+
 FGS Invoke Result[code: 200]
 {"statusCode":200,"headers":{"Content-Type":"application/json"},"isBase64Encoded":false,"body":"{\"key\":\"value\"}"}
 ```

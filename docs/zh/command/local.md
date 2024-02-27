@@ -41,10 +41,10 @@
 | event-name    | n        | 选填            | 传入 函数的 事件数据，包含 `APIG, CTS, DDS, DIS, LTS, OBS, SMN, TIMER`                   |
 | event-file    | f        | 选填            | 以文件形式传入 `event` 事件数据  |
 | event-stdin   | s        | 选填            | 以标准输入形式传入 `event` 事件数据 |
-| mode          | m        | 选填            | 调试模式选择，包括：<br> - `normal`: 默认模式，本地函数运行容器在函数执行完成后立刻退出 <br>`api`: 启动服务供本地 InvokeFunction API 或者 SDK 进行调用 |
+| mode          | m        | 选填            | 调试模式选择，包括：<br> - `normal`: 默认模式，本地函数运行容器在函数执行完成后立刻退出 <br> - `api`: 启动服务供本地 InvokeFunction API 或者 SDK 进行调用 |
 | config        | c        | 选填            | 指定断点调试时使用的 IDE，当前只支持 `vscode`, 取值范围：`vscode`  |
-| debug-port    | d        | 选填            | 指定断点调试端|
-| server-port   | -        | 选填            | 自定义本地监听 `server` 的端口，默认是在 大于 3000 的随机端口     |
+| debug-port    | d        | 选填            | 指定断点调试端口|
+| server-port   | -        | 选填            | 自定义本地监听 `server` 的端口     |
 
 > 当前命令还支持部分全局参数（例如`-a/--access`, `--debug`, `--help`等），详情可参考 [Serverless Devs 全局参数文档](https://github.com/Serverless-Devs/Serverless-Devs/blob/master/docs/zh/command/readme.md#%E5%85%A8%E5%B1%80%E5%8F%82%E6%95%B0)
 
