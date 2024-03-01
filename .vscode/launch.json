@@ -59,6 +59,20 @@
             "skipFiles": [
                 "<node_internals>/**"
             ]
+        },
+        {
+            "name": "Local Command",
+            "type": "node",
+            "request": "launch",
+            "runtimeExecutable": "ts-node",
+            "runtimeArgs": [
+                "local.ts"
+            ],
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}/test/fixtures",
+            "skipFiles": [
+                "<node_internals>/**"
+            ]
         }
     ]
 }

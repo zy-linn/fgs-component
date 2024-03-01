@@ -5,6 +5,9 @@ import { RemoveService } from "./services/remove.service";
 import { InputProps } from "./interface/interface";
 import { DeployService } from "./services/deploy.service";
 import { Fun2sService } from "./services/fun2s.service";
+import { LocalService } from "./services/local.service";
+import { InvokeService } from "./services/invoke.service";
+import { InfoService } from "./services/info.service";
 
 export default class ComponentDemo {
   /**
@@ -95,6 +98,11 @@ export default class ComponentDemo {
     }
   }
 
+  /**
+   * 项目迁移
+   * @param inputs 
+   * @returns 
+   */
   public async fun2s(inputs: InputProps): Promise<any> {
     try {
       const service = new Fun2sService();
@@ -103,6 +111,60 @@ export default class ComponentDemo {
         return;
       }
       return await service.transform(props, client);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  /**
+   * 本地调试
+   * @param inputs 
+   * @returns 
+   */
+  public async local(inputs: InputProps): Promise<any> {
+    try {
+      const service = new LocalService();
+      const { props, subCommand, isHelp, baseDir } = await service.handleInputs(inputs);
+      if (isHelp) {
+        return;
+      }
+      return await service[subCommand](props, baseDir);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  /**
+   * 函数触发
+   * @param inputs 
+   * @returns 
+   */
+  public async invoke(inputs: InputProps): Promise<any> {
+    try {
+      const service = new InvokeService();
+      const { props, client, isHelp } = await service.handleInputs(inputs);
+      if (isHelp) {
+        return;
+      }
+      return await service.invoke(props, client);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  /**
+   * 函数查看
+   * @param inputs 
+   * @returns 
+   */
+  public async info(inputs: InputProps): Promise<any> {
+    try {
+      const service = new InfoService();
+      const { props, client, isHelp } = await service.handleInputs(inputs);
+      if (isHelp) {
+        return;
+      }
+      return await service.info(props, client);
     } catch (error) {
       throw error;
     }

@@ -10,14 +10,17 @@
 | timeout          | True  | Number     | 函数执行超时时间，超时函数将被强行停止，范围3～900秒   |
 | [codeType](#code-type)          | True  | String     | 函数代码类型  |
 | codeUrl          | False  | String     | 当CodeType为obs时，该值为函数代码包在OBS上的地址，CodeType为其他值时，该字段为空。  |
-| environmentVariables       | False | [Struct](#environment-variables)    | 环境变量。最多定义20个，总长度不超过4KB |
-| agencyName          | False  | String     | 委托名称，需要IAM支持，并在IAM界面创建委托，当函数需要访问其他服务时，必须提供该字段  |
-| vpcId          | False  | String     | 虚拟私有云唯一标识。配置时，agencyName必填。https://console.huaweicloud.com/vpc/#/vpc/vpcs/list  |
-| subnetId          | False  | String     | 子网编号。配置时，agencyName必填。https://console.huaweicloud.com/vpc/#/vpc/subnets  |
+| userData(别名environmentVariables)       | False | [Struct](#environment-variables)    | 环境变量。最多定义20个，总长度不超过4KB |
+| xrole(别名agencyName)          | False  | String     | 委托名称，需要IAM支持，并在IAM界面创建委托，当函数需要访问其他服务时，必须提供该字段  |
+| funcVpc          | False  | [Struct](#func-vpc)     | 虚拟私有云唯一标识。配置时，agencyName必填。https://console.huaweicloud.com/vpc/#/vpc/vpcs/list  |
+| domainNames          | False  | String     | 内网域名配置，更新函数时生效  |
 | dependVersionList          | False  | List\<String\>        | 依赖包，取依赖包的ID  |
 | code          | False  | [Struct](#func-code)        | 本地代码地址，当CodeType为zip时，必填  |
 | concurrency          | False  | Number        | 单函数最大实例数，取值-1到1000。 -1代表该函数实例数无限制； 0代表该函数被禁用  |
 | concurrentNum          | False  | Number        | 单实例最大并发数，取值-1到1000  |
+| enterpriseProjectId          | False  | String        | 企业项目ID，默认值为 0  |
+| initializerHandler          | False  | String        | 函数初始化入口 |
+| initializerTimeout          | False  | Number        | 函数初始化超时时间，超时函数将被强行停止，范围 1 ~ 300秒。当前配置初始化函数时，此参数必填 |
 | description             | False | String                             | function 的简短描述        |
 
 
@@ -71,5 +74,15 @@ Object 格式，例如：
 ```
 DB_connection: jdbc:mysql://rm-bp90434sds45c.mysql.rds.aliyuncs.com:3306/litemall
 ```
+
+### Func Vpc 
+函数VPC配置
+
+| 参数名              | 必填  | 类型   | 参数描述                                                                       |
+| ------------------- | ----- | ------ | ------------------------------------------------------------------------------ |
+| vpcId          | True  | String | VPC唯一标识|
+| subnetId          | True  | String | 子网编码|  
+| cidr          | False  | String | 子网掩码|   
+| gateway          | False  | String | 网关| 
 
 当然不推荐通过明文将敏感信息写入到`s.yaml`

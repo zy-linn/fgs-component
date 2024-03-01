@@ -19,7 +19,7 @@ Huawei Cloud FunctionGraph component has the following capabilities.
 
 | Build & Deploy| Publish & Config |  Other|
 | --- | --- | --- |
-| [deploy](docs/en/command/deploy.md)  |  [version](docs/en/command/version.md)     | [fun2s](docs/en/command/fun2s.md)| 
-| [remove](docs/en/command/remove.md)  |  [alias](docs/en/command/alias.md)    |  | 
+| [**deploy**](docs/en/command/deploy.md)  |  [**version**](docs/en/command/version.md)     | [**fun2s**](docs/en/command/fun2s.md)| 
+| [**remove**](docs/en/command/remove.md)  |  [**alias**](docs/en/command/alias.md)    |  | 
 
 When using the FunctionGraph component, you will need to compile a YAML resource description file. For details, see [**Huawei Cloud FunctionGraph YAML Specifications**](docs/en/yaml/readme.md).
