@@ -6,7 +6,7 @@ import { commandParse, help } from "@serverless-devs/core";
 import { ICredentials, IInputs, IProperties, InputProps } from "../interface/interface";
 import logger from "../common/logger";
 import { LOCAL, LOCAL_INVOKE } from "../help/local";
-import { getFunctionClient, handlerUrn } from "../utils/util";
+import { extendFunctionInfos, getFunctionClient, handlerUrn } from "../utils/util";
 import { IFunctionProps } from '../interface/function.interface';
 import { EventService } from './event.service';
 import { IdeService } from './ide.service';
@@ -63,6 +63,8 @@ export class LocalService {
         }
 
         const props: IProperties = inputs.props;
+        props.function = extendFunctionInfos(props.function);
+        logger.debug(`props: ${JSON.stringify(props)}`);
 
         if (!props?.region) {
             throw new Error("Region not found. Please specify with --region");

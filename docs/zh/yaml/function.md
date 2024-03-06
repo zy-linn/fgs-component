@@ -10,7 +10,7 @@
 | timeout          | True  | Number     | 函数执行超时时间，超时函数将被强行停止，范围3～900秒   |
 | [codeType](#code-type)          | True  | String     | 函数代码类型  |
 | codeUrl          | False  | String     | 当CodeType为obs时，该值为函数代码包在OBS上的地址，CodeType为其他值时，该字段为空。  |
-| userData(别名environmentVariables)       | False | [Struct](#environment-variables)    | 环境变量。最多定义20个，总长度不超过4KB |
+| userData(别名environmentVariables)       | False | [Struct](#environment-variables)    | 环境变量。最多定义20个，总长度不超过4KB, userData 与 environmentVariables 同事存在时，userData字段生效|
 | xrole(别名agencyName)          | False  | String     | 委托名称，需要IAM支持，并在IAM界面创建委托，当函数需要访问其他服务时，必须提供该字段  |
 | funcVpc          | False  | [Struct](#func-vpc)     | 虚拟私有云唯一标识。配置时，agencyName必填。https://console.huaweicloud.com/vpc/#/vpc/vpcs/list  |
 | domainNames          | False  | String     | 内网域名配置，更新函数时生效  |
@@ -20,8 +20,14 @@
 | concurrentNum          | False  | Number        | 单实例最大并发数，取值-1到1000  |
 | enterpriseProjectId          | False  | String        | 企业项目ID，默认值为 0  |
 | initializerHandler          | False  | String        | 函数初始化入口 |
-| initializerTimeout          | False  | Number        | 函数初始化超时时间，超时函数将被强行停止，范围 1 ~ 300秒。当前配置初始化函数时，此参数必填 |
-| description             | False | String                             | function 的简短描述        |
+| initializerTimeout          | False  | Number        | 函数初始化超时时间，超时函数将被强行停止，范围 1 ~ 300秒。当配置了初始化函数，此参数必填 |
+| ltsGroupId          | False  | String        | 日志组ID |
+| ltsGroupName          | False  | String        | 日志组名称。当配置了日志组ID，此参数必填|
+| ltsStreamId          | False  | String        | 日志流ID。当配置了日志组ID，此参数必填 |
+| ltsStreamName          | False  | String        | 日志流名称。当配置了日志组ID，此参数必填|
+| tags          | False  |  [Struct](#tags)         | 标签 |
+| description             | False | String                             | 描述信息        |
+| extend             | False | [Struct](#extend)                             | 扩展字段，多函数的公共属性放到extend字段中        |
 
 
 参考案例：
@@ -86,3 +92,45 @@ DB_connection: jdbc:mysql://rm-bp90434sds45c.mysql.rds.aliyuncs.com:3306/litemal
 | gateway          | False  | String | 网关| 
 
 当然不推荐通过明文将敏感信息写入到`s.yaml`
+
+### Tags
+
+Object 格式，例如：
+
+```
+tags:
+  tag1: value1
+  tag2: value2
+```
+
+### Extend
+
+Object 格式，例如：
+
+`extend`：
+```
+  function:
+    handler: index.handler
+    userData:
+      key: value
+      hello: world
+```
+`s.yml`:
+```
+  function:
+    functionName: name
+    extend: ${extend.function}
+    userData:
+      key: value2
+      key1: value1
+```
+合并后的效果：
+```
+  function:
+    functionName: name
+    handler: index.handler
+    userData:
+      key: value2
+      key1: value1
+      hello: world
+```

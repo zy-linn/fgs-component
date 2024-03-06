@@ -3,7 +3,7 @@ import logger from "../common/logger";
 import { IInputs, ICredentials } from "../interface/interface";
 
 import { commandParse, help, spinner } from "@serverless-devs/core";
-import { getFunctionClient, handlerResponse, handlerUrn, isString, tableShow } from "../utils/util";
+import { extendFunctionInfos, getFunctionClient, handlerResponse, handlerUrn, isString, tableShow } from "../utils/util";
 import { CreateVersionAliasRequest, CreateVersionAliasRequestBody, DeleteVersionAliasRequest, ListVersionAliasesRequest, ShowVersionAliasRequest, UpdateVersionAliasRequest, UpdateVersionAliasRequestBody } from "@huaweicloud/huaweicloud-sdk-functiongraph";
 import { ALIAS, ALIAS_GET, ALIAS_LIST, ALIAS_PUBLISH } from "../help/alias";
 
@@ -59,6 +59,8 @@ export class AliasService {
         }
 
         const props = inputs.props || {};
+        props.function = extendFunctionInfos(props.function);
+        logger.debug(`props: ${JSON.stringify(props)}`);
 
         const endProps: IAliasProps = {
             region: parsedData.region || props.region,
