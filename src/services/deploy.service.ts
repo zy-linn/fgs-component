@@ -2,7 +2,7 @@ import { commandParse, help } from "@serverless-devs/core";
 import logger from "../common/logger";
 import { DEPLOY, DEPLOY_ALL, DEPLOY_FUNCTION, DEPLOY_TRIGGER } from "../help/deploy";
 import { ICredentials, IInputs, IProperties, InputProps } from "../interface/interface";
-import { getFunctionClient, handlerUrn } from "../utils/util";
+import { extendFunctionInfos, getFunctionClient, handlerUrn } from "../utils/util";
 import { FunctionClient } from "../clients/function.client";
 import { TriggerService } from "./trigger.service";
 import { FunctionService } from "./function.service";
@@ -56,11 +56,11 @@ export class DeployService {
         if (!props?.region) {
             throw new Error("Region not found. Please specify with --region");
         }
-
+        props.function = extendFunctionInfos(props.function);
+        logger.debug(`props: ${JSON.stringify(props)}`);
+        
         const credentials: ICredentials = inputs.credentials;
-
         const { client, projectId } = await getFunctionClient(credentials, props.region);
-
         const urn = handlerUrn(props.region, projectId, 'default', props.function.functionName, 'latest');
         return {
             credentials,

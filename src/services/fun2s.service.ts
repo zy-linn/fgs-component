@@ -2,7 +2,7 @@ import { commandParse, help, spinner } from "@serverless-devs/core";
 import { ICredentials, IInputs, IProperties, InputProps } from "../interface/interface";
 import logger from "../common/logger";
 import { FUN_TO_S } from "../help/fun2s";
-import { getFunctionClient, handlerResponse, handlerUrn } from "../utils/util";
+import { extendFunctionInfos, getFunctionClient, handlerResponse, handlerUrn } from "../utils/util";
 import { FunctionClient } from "../clients/function.client";
 import { ShowFunctionConfigRequest } from "@huaweicloud/huaweicloud-sdk-functiongraph";
 import { IFunctionResult } from "../interface/function.interface";
@@ -42,7 +42,9 @@ export class Fun2sService {
         }
 
         const props: IProperties = inputs.props;
-
+        props.function = extendFunctionInfos(props.function);
+        logger.debug(`props: ${JSON.stringify(props)}`);
+    
         const endProps: IFun2s = {
             region: parsedData.region || props?.region,
             functionName: parsedData['function-name'] || props?.function?.functionName,

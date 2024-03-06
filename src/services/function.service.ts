@@ -272,7 +272,7 @@ export class FunctionService {
     try {
       const body = this.getConfigRequestBody(props.function, config);
       logger.debug("------------update body-----------");
-      logger.debug(body);
+      logger.debug(JSON.stringify(body));
       const request = new UpdateFunctionConfigRequest()
         .withFunctionUrn(props.urn)
         .withBody(body);
@@ -570,27 +570,22 @@ export class FunctionService {
   }
 
   private async createTags(props: IProperties, client: FunctionGraphClient) {
-    const tag = props.service?.name
-    if(!tag) {
-        return
-    }
-    const { tags } = await this.getTags(props.urn, client);
-    if (tags.some((v) => v.key === tag)) {
-      return;
-    }
     try {
-      await this.deleteTags(props.urn, tags, client);
+      const kvItems = await this.handlerTags(props, client);
+      if (kvItems.length === 0) {
+        return;
+      }
+      await this.deleteTags(props.urn, kvItems, client);
       const req = new CreateTagsRequest();
       req.withResourceType("functions");
       req.withResourceId(props.urn);
       const body = new UpdateFunctionTagsRequestBody();
       body.withAction("create");
-      const kvItem = new KvItem().withKey(tag).withValue(tag);
-      body.withTags([kvItem]);
+      body.withTags(kvItems);
       req.withBody(body);
       client.createTags(req);
     } catch (error) {
-      logger.debug(error);
+      logger.debug('Create tags failed.' + JSON.stringify(error));
     }
   }
 
@@ -621,5 +616,23 @@ export class FunctionService {
     config: unknown | undefined
   ): body is UpdateFunctionConfigRequestBody {
     return config !== undefined;
+  }
+
+  private async handlerTags(props: IProperties, client: FunctionGraphClient): Promise<Array<KvItem>> {
+    const serviceName = props.service?.name;
+    let propTags = props.function.tags ?? {};
+    if (serviceName && !propTags[serviceName]) {
+      propTags[serviceName] = serviceName;
+    }
+    
+    if (Object.keys(propTags).length === 0) { // 没有配置标签 
+      return [];
+    }
+    const { tags = [] } = await this.getTags(props.urn, client);
+    // 获取已有标签并用配置的覆盖
+    tags.filter(({key})=> !propTags[key]).forEach(({key, value}) => {
+      propTags[key] = value;
+    });
+    return Object.keys(propTags).map(key => new KvItem().withKey(key).withValue(propTags[key]));
   }
 }

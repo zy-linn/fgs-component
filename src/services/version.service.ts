@@ -4,7 +4,7 @@ import { VERSION, VERSION_LIST, VERSION_PUBLISH } from "../help/version";
 import { ICredentials, IInputs, IProperties, InputProps } from "../interface/interface";
 
 import { commandParse, help, spinner } from "@serverless-devs/core";
-import { getFunctionClient, handlerResponse, handlerUrn, isYml, tableShow } from "../utils/util";
+import { extendFunctionInfos, getFunctionClient, handlerResponse, handlerUrn, isYml, tableShow } from "../utils/util";
 import { CreateFunctionVersionRequest, CreateFunctionVersionRequestBody, DeleteFunctionRequest, ListFunctionVersionsRequest } from "@huaweicloud/huaweicloud-sdk-functiongraph";
 
 export interface IVersion {
@@ -53,6 +53,8 @@ export class VersionService {
         }
 
         const props: IProperties = inputs.props;
+        props.function = extendFunctionInfos(props.function);
+        logger.debug(`props: ${JSON.stringify(props)}`);
 
         const endProps: IVersion = {
             region: parsedData.region || props?.region,

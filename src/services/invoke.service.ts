@@ -3,7 +3,7 @@ import { commandParse, spinner, help } from "@serverless-devs/core";
 import logger from "../common/logger";
 import { ICredentials, IInputs, IProperties, InputProps } from "../interface/interface";
 import { INVOKE } from "../help/invoke";
-import { getFunctionClient, handlerUrn } from "../utils/util";
+import { extendFunctionInfos, getFunctionClient, handlerUrn } from "../utils/util";
 import { FunctionClient } from "../clients/function.client";
 import { EventService } from "./event.service";
 import { InvokeFunctionRequest } from "@huaweicloud/huaweicloud-sdk-functiongraph";
@@ -43,6 +43,8 @@ export class InvokeService {
         }
 
         const props: IProperties = inputs.props;
+        props.function = extendFunctionInfos(props.function);
+        logger.debug(`props: ${JSON.stringify(props)}`);
 
         const endProps: IInvoke = {
             region: parsedData.region || props?.region,

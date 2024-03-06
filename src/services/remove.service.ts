@@ -2,7 +2,7 @@ import { commandParse, help } from "@serverless-devs/core";
 import { ICredentials, IInputs, IProperties, IRemoveProps, InputProps } from "../interface/interface";
 import logger from "../common/logger";
 import { REMOVE, REMOVE_ALIAS, REMOVE_FUNCTION, REMOVE_TRIGGER, REMOVE_VERSION } from "../help/remove";
-import { getFunctionClient, handlerUrn, isYml } from "../utils/util";
+import { extendFunctionInfos, getFunctionClient, handlerUrn, isYml } from "../utils/util";
 import { FunctionClient } from "../clients/function.client";
 import { VersionService } from "./version.service";
 import { AliasService } from "./alias.service";
@@ -47,6 +47,8 @@ export class RemoveService {
         }
 
         const props: IProperties = inputs.props;
+        props.function = extendFunctionInfos(props.function);
+        logger.debug(`props: ${JSON.stringify(props)}`);
 
         const endProps: IRemoveProps = {
             region: parsedData.region || props?.region,
