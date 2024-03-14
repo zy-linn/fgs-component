@@ -15,7 +15,7 @@ triggerTypeCode supports `APIG`, `OBS`, and `TIMER`.
 | ----------------- | ---- | ----------------- | --------------------------------------------- |
 | name              | False | String            | API name. The function name is used by default.            |
 | groupName         | False | String           | Group. The first one is selected by default.                  |
-| auth              | False | [Enum](#auth)           | Authentication mode. Default: `IAM`.                   |
+| auth              | False | [Enum](#auth)           | Authentication mode. Default: `NONE`.                   |
 | protocol           | False | [Enum](#protocol)           | Request protocol. Default: `HTTPS`.                   |
 | timeout           | False | Number           | Backend timeout in milliseconds. Range: 1–60,000. Default: `5000`.     |
 
@@ -24,7 +24,7 @@ API authentication mode. Options:
 
 - **App**: AppKey and AppSecret high security authentication. This authentication mode is recommended. For details, see [App Authentication](https://support.huaweicloud.com/intl/en-us/devg-apig/apig-dev-180907066.html).
 - **IAM**: IAM authentication. This mode grants access permissions to IAM users only and is of medium security. For details, see [IAM Authentication](https://support.huaweicloud.com/intl/en-us/devg-apig/apig-dev-180307020.html).
-- **None**: No authentication. This mode grants access permissions to all users.
+- **NONE**: No authentication. This mode grants access permissions to all users.
 
 #### protocol
 There are two types of protocols:
@@ -41,7 +41,7 @@ trigger:
     eventData:
         name: APIG_test
         groupName: APIGroup_xxx
-        auth: IAM
+        auth: NONE
         protocol: HTTPS
         timeout: 5000
 ```

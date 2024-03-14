@@ -42,7 +42,7 @@ function:
 
 Supported runtimes:
 
-`Node.js 14.18`, `Node.js 12.13`, `Node.js 10.16`, `Node.js 8.10`, `Node.js 6`, `Node.js 4.4` 
+`Node.js18.15`、`Node.js16.17`、`Node.js 14.18`, `Node.js 12.13`, `Node.js 10.16`, `Node.js 8.10`, `Node.js 6`, `Node.js 4.4` 
 `Python 3.9`, `Python 3.6`, `Python 2.7`
 `Java 11`, `Java 8` 
 `Go 1.x`, `Go 1.8` 
