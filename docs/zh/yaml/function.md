@@ -13,7 +13,7 @@
 | userData(别名environmentVariables)       | False | [Struct](#environment-variables)    | 环境变量。最多定义20个，总长度不超过4KB, userData 与 environmentVariables 同事存在时，userData字段生效|
 | xrole(别名agencyName)          | False  | String     | 委托名称，需要IAM支持，并在IAM界面创建委托，当函数需要访问其他服务时，必须提供该字段  |
 | funcVpc          | False  | [Struct](#func-vpc)     | 虚拟私有云唯一标识。配置时，agencyName必填。https://console.huaweicloud.com/vpc/#/vpc/vpcs/list  |
-| domainNames          | False  | String     | 内网域名配置，更新函数时生效  |
+| domainNames          | False  | [Struct](#domain-name)     | 内网域名配置，更新函数时生效。https://console.huaweicloud.com/dns/#/dns/privatezones |
 | dependVersionList          | False  | List\<String\>        | 依赖包，取依赖包的ID  |
 | code          | False  | [Struct](#func-code)        | 本地代码地址，当CodeType为zip时，必填  |
 | concurrency          | False  | Number        | 单函数最大实例数，取值-1到1000。 -1代表该函数实例数无限制； 0代表该函数被禁用  |
@@ -92,6 +92,17 @@ DB_connection: jdbc:mysql://rm-bp90434sds45c.mysql.rds.aliyuncs.com:3306/litemal
 | gateway          | False  | String | 网关| 
 
 当然不推荐通过明文将敏感信息写入到`s.yaml`
+
+### Domain Name 
+数组对象格式，例如：
+
+```
+domainNames:
+  - id: domainId1
+    name: domainName1
+  - id: domainId2
+    name: domainName2
+```
 
 ### Tags
 

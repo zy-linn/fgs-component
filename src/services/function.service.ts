@@ -440,7 +440,7 @@ export class FunctionService {
       funcVpc.withSubnetId(subnetId);
       funcVpc.withCidr(newData?.funcVpc?.cidr ?? oldData?.func_vpc?.cidr);
       funcVpc.withGateway(
-        newData?.funcVpc?.gateway ?? oldData?.func_vpc.gateway
+        newData?.funcVpc?.gateway ?? oldData?.func_vpc?.gateway
       );
       body.withFuncVpc(funcVpc);
     }
@@ -456,7 +456,7 @@ export class FunctionService {
       vpc_name: v.vpcName ?? v.vpc_name,
     }));
     networkController.withTriggerAccessVpcs(
-      vpcs ?? oldData?.network_controller.trigger_access_vpcs
+      vpcs ?? oldData?.network_controller?.trigger_access_vpcs
     );
     body.withNetworkController(networkController);
     if (this.isUpdate(body, oldData)) {
