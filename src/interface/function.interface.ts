@@ -20,6 +20,7 @@ export interface IFunctionProps
   };
   userData?: any;
   encryptedUserData?: any;
+  tagPolicy?: string;// 标签策略
   extend?: { [prop: string]: any }; // 扩展字段
 }
 

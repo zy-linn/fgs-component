@@ -26,6 +26,7 @@
 | ltsStreamId          | False  | String        | 日志流ID。当配置了日志组ID，此参数必填 |
 | ltsStreamName          | False  | String        | 日志流名称。当配置了日志组ID，此参数必填|
 | tags          | False  |  [Struct](#tags)         | 标签 |
+| tagPolicy          | False  |  String         | 配置文件中的标签和线上标签处理策略。取值范围： override(以配置文件为准)、merge(配置文件和线上合并)，默认为 override|
 | description             | False | String                             | 描述信息        |
 | extend             | False | [Struct](#extend)                             | 扩展字段，多函数的公共属性放到extend字段中        |
 
