@@ -77,7 +77,7 @@ export class VersionService {
 
         const { client, projectId } = await getFunctionClient(credentials, endProps.region);
 
-        endProps.urn = handlerUrn(endProps.region, projectId, 'default', endProps.functionName, endProps.version);
+        endProps.urn = handlerUrn(endProps.region, projectId, 'default', endProps.functionName);
         logger.debug(`endProps: ${JSON.stringify(endProps)}`);
         return {
             subCommand,
@@ -129,8 +129,15 @@ export class VersionService {
             props.description && body.withDescription(props.description);
             request.withBody(body);
             const result = await client.getFunctionClient().createFunctionVersion(request);
+            this.spin.succeed(`Version [${props.version}] published.`);
+            logger.debug(`Version [${props.version}] published.`);
             return this.handlerPublish(result);
         } catch (err) {
+            if (err?.errorCode === 'FSS.1021') {
+                logger.debug(`The version [${props.version}] already exists.`);
+                this.spin.succeed(`Version [${props.version}] published.`);
+                return;
+              }
             this.spin.fail(`Publish version of function [${props.functionName}] failed.`);
             logger.error(`Publish version of function [${props.functionName}] failed. err=${(err as Error).message}`);
             throw err;

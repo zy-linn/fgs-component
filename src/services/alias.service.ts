@@ -170,6 +170,8 @@ export class AliasService {
             const aliasConfig = await this.findAlias(props, client);
             const result = aliasConfig ? await this.updateAlias(props, client) : await this.createAlias(props, client);
             const res = this.handlerPublish(result);
+            this.spin.succeed(`Alias [${aliasName}] published.`);
+            logger.debug(`Alias [${aliasName}] published.`);
             return res;
         } catch (err) {
             this.spin.fail(`Publish alias [${aliasName}] failed.`);

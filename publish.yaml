@@ -11,7 +11,7 @@ Type: Component
 Name: fgs
 Provider:
   - 华为云
-Version: 0.1.9
+Version: 0.1.10
 Description: 简短的描述/介绍
 HomePage: 项目首页地址
 Tags: #标签详情
