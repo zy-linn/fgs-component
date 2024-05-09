@@ -52,7 +52,7 @@ export default class ComponentDemo {
       const deployInfo = await service[subCommand](props, client);
       help(deployInfo);
     } catch (err) {
-      throw err;
+      return;
     }
   }
 
@@ -73,7 +73,7 @@ export default class ComponentDemo {
       const deployInfo = await service[subCommand](props, client);
       return deployInfo;
     } catch (err) {
-      throw err;
+      return;
     }
   }
 
@@ -94,7 +94,7 @@ export default class ComponentDemo {
       const infos = await service[subCommand](props, client);
       return { [props.functionName]: infos };
     } catch (err) {
-      throw err;
+      return;
     }
   }
 
@@ -112,7 +112,7 @@ export default class ComponentDemo {
       }
       return await service.transform(props, client);
     } catch (error) {
-      throw error;
+      return;
     }
   }
 
@@ -130,7 +130,7 @@ export default class ComponentDemo {
       }
       return await service[subCommand](props, baseDir);
     } catch (error) {
-      throw error;
+      return;
     }
   }
 
@@ -148,7 +148,7 @@ export default class ComponentDemo {
       }
       return await service.invoke(props, client);
     } catch (error) {
-      throw error;
+      return;
     }
   }
 
@@ -166,7 +166,7 @@ export default class ComponentDemo {
       }
       return await service.info(props, client);
     } catch (error) {
-      throw error;
+      return;
     }
   }
 }

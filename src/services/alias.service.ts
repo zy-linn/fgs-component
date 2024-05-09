@@ -4,7 +4,7 @@ import { IInputs, ICredentials } from "../interface/interface";
 
 import { commandParse, help, spinner } from "@serverless-devs/core";
 import { extendFunctionInfos, getFunctionClient, handlerResponse, handlerUrn, isString, tableShow } from "../utils/util";
-import { CreateVersionAliasRequest, CreateVersionAliasRequestBody, DeleteVersionAliasRequest, ListVersionAliasesRequest, ShowVersionAliasRequest, UpdateVersionAliasRequest, UpdateVersionAliasRequestBody } from "@huaweicloud/huaweicloud-sdk-functiongraph";
+import { CreateVersionAliasRequest, CreateVersionAliasRequestBody, DeleteVersionAliasRequest, ListVersionAliasesRequest, ShowVersionAliasRequest, UpdateVersionAliasRequest, UpdateVersionAliasRequestBody, VersionStrategy, VersionStrategyRules } from "@huaweicloud/huaweicloud-sdk-functiongraph";
 import { ALIAS, ALIAS_GET, ALIAS_LIST, ALIAS_PUBLISH } from "../help/alias";
 
 
@@ -18,6 +18,8 @@ interface IAliasProps {
     weight?: number;
     description?: string;
     table?: boolean;
+    resolvePolicy?: string;
+    rulePolicy?: string;
 };
 
 const ALIAS_COMMAND: string[] = ['get', 'list', 'publish'];
@@ -71,6 +73,8 @@ export class AliasService {
             gVersion: parsedData.gversion,
             weight: parseInt(parsedData.weight),
             description: parsedData.description,
+            resolvePolicy: parsedData['resolve-policy']?.toLocaleLowerCase(),
+            rulePolicy: parsedData['rule-policy'],
             table: parsedData.table ?? false
         };
         if (!endProps.region) {
@@ -138,7 +142,7 @@ export class AliasService {
             const request = new ListVersionAliasesRequest().withFunctionUrn(props.urn);
             const result = await client.getFunctionClient().listVersionAliases(request);
             const data = this.handlerList(result);
-            logger.debug(`Querying aliases of function [${props.functionName}]. res = ${JSON.stringify(data)}`);
+            logger.debug(`Query aliases of function [${props.functionName}]. res = ${JSON.stringify(data)}`);
             if (props.table) {
                 this.showAliasTable(data);
                 return;
@@ -160,11 +164,9 @@ export class AliasService {
      * @returns 
      */
     async publish(props: IAliasProps, client: FunctionClient) {
-        const { weight, gVersion, aliasName } = props;
-        const hasWeight = !isNaN(weight);
-
+        const { aliasName } = props;
         try {
-            this.checkPublishParams(aliasName, gVersion, hasWeight);
+            this.checkPublishParams(props);
             this.spin.info(`Publishing alias [${aliasName}].`);
             logger.debug(`Publishing alias [${aliasName}].`);
             const aliasConfig = await this.findAlias(props, client);
@@ -222,7 +224,9 @@ export class AliasService {
      * @param gVersion 灰度版本
      * @param hasWeight 权重
      */
-    private checkPublishParams(aliasName = '', gVersion = '', hasWeight = false) {
+    private checkPublishParams(props: IAliasProps) {
+        const { weight, gVersion, aliasName, rulePolicy } = props;
+        const hasWeight = !isNaN(weight);
         if (!aliasName) {
             throw new Error('AliasName is required. Please specify with --alias-name');
         }
@@ -234,8 +238,18 @@ export class AliasService {
         if (hasWeight && !gVersion) {
             throw new Error('weight exists, gversion is required. Please specify with --gversion');
         }
-        if (gVersion && !hasWeight) {
-            throw new Error('gversion exists, weight is required. Please specify with --weight');
+        if (rulePolicy) {
+            if (!gVersion) {
+                throw new Error('Rule exists, gversion is required. Please specify with --gversion');
+            }
+            try {
+                props.rulePolicy = JSON.parse(rulePolicy);
+            } catch(err) {
+                logger.error('The rule policy format is incorrect. Resolve policy uses percentage.');
+                props.rulePolicy = null;
+                props.resolvePolicy = 'percentage';
+                return;
+            } 
         }
     }
 
@@ -246,12 +260,10 @@ export class AliasService {
      * @returns 
      */
     private async createAlias(props: IAliasProps, client: FunctionClient) {
-        logger.debug(`createAlias: ${JSON.stringify(props)}`);
-        const hasWeight = !isNaN(props.weight);
         const body = new CreateVersionAliasRequestBody().withName(props.aliasName).withVersion(props.version);
-        props.description && body.withDescription(props.description);
-        hasWeight && body.withAdditionalVersionWeights({ [props.gVersion]: props.weight });
+        this.handlerAliasBody(props, body);
         const request = new CreateVersionAliasRequest().withFunctionUrn(props.urn).withBody(body);
+        logger.debug(`createAlias: ${JSON.stringify(request)}`);
         return await client.getFunctionClient().createVersionAlias(request);
     }
 
@@ -262,13 +274,46 @@ export class AliasService {
      * @returns 
      */
     private async updateAlias(props: IAliasProps, client: FunctionClient) {
-        logger.debug(`updateAlias: ${JSON.stringify(props)}`);
-        const hasWeight = !isNaN(props.weight);
         const body = new UpdateVersionAliasRequestBody().withVersion(props.version);
-        props.description && body.withDescription(props.description);
-        hasWeight && body.withAdditionalVersionWeights({ [props.gVersion]: props.weight });
+        this.handlerAliasBody(props, body);
         const request = new UpdateVersionAliasRequest().withFunctionUrn(props.urn).withAliasName(props.aliasName).withBody(body);
+        logger.debug(`updateAlias: ${JSON.stringify(request)}`);
         return await client.getFunctionClient().updateVersionAlias(request);
+    }
+
+    /**
+     * 处理Body
+     * @param props 
+     * @param body 
+     * @returns 
+     */
+    private handlerAliasBody(props: IAliasProps, body: UpdateVersionAliasRequestBody | CreateVersionAliasRequestBody) {
+        const { description, weight, gVersion, rulePolicy, resolvePolicy } = props;
+        const hasWeight = !isNaN(weight);
+        const isRule = resolvePolicy === 'rule';
+        description && body.withDescription(description);
+        if (hasWeight && !isRule) { //权重存在且灰度方式不为规则
+            body.withAdditionalVersionWeights({ [gVersion]: weight });
+            return;
+        }
+        if (!!rulePolicy && (!hasWeight || isRule)) { //规则配置存在且灰度方式为规则或泉州不存在
+            const rules = this.handlerRules(rulePolicy);
+            body.withAdditionalVersionStrategy({ [gVersion]: rules});
+            return;
+        }
+    }
+
+    /**
+     * 解析规则配置
+     * @param rulePolicy 
+     * @returns 
+     */
+    private handlerRules(rulePolicy): VersionStrategy {
+        const strategyConf = new VersionStrategy();
+        strategyConf.withCombineType(rulePolicy.combine_type);
+        const rules = rulePolicy.rules.map(r => new VersionStrategyRules().withOp(r.op).withParam(r.param).withRuleType(r.rule_type).withValue(r.value));
+        strategyConf.withRules(rules);
+        return strategyConf;
     }
 
     /**
@@ -297,13 +342,19 @@ export class AliasService {
      * @returns 
      */
     private handlerAliasInfo(info) {
-        return {
+        const res = {
             name: info.name,
             version: info.version,
-            additionalVersionWeight: info.additional_version_weights || '--',
             description: info.description || '--',
             lastModifiedTime: info.last_modified
         }
+        if (info.additional_version_strategy) {
+            res['additionalVersionStrategy'] = info.additional_version_strategy;
+        }
+        if (info.additional_version_weights) {
+            res['additionalVersionWeight'] = info.additional_version_weights;
+        }
+        return res;
     }
 
     /**
@@ -314,7 +365,7 @@ export class AliasService {
         const showWeight = {
             value: 'additionalVersionWeight',
             formatter: (value) => {
-                if (isString(value)) {
+                if (!value || isString(value)) {
                     return '--';
                 }
                 const gversion = Object.keys(value)[0];
@@ -324,6 +375,21 @@ export class AliasService {
                 return '';
             },
         };
-        tableShow(data, ['name', 'version', 'description', 'lastModifiedTime', showWeight]);
+        const showStrategy = {
+            value: 'additionalVersionStrategy',
+            formatter: (value) => {
+                if (!value || isString(value)) {
+                    return '--';
+                }
+                const gversion = Object.keys(value)[0];
+                if (gversion) {
+                    const values = value[gversion];
+                    const rules = values.rules.map(r => `${r.rule_type}:${r.param} ${r.op} ${r.value}`).join('\n');
+                    return `combinType: ${values.combine_type}\nRules: \n${rules}`;
+                }
+                return '';
+            },
+        };
+        tableShow(data, ['name', 'version', 'description', 'lastModifiedTime', showWeight, showStrategy]);
     }
 }
