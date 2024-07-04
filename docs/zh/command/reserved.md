@@ -124,3 +124,5 @@ Reserved instances [fgs-test] updated.
 | expiredTime   | string       | 必填           | 2024-12-31T00:00:00Z           | 定时策略失效时间      |
 | count   | number     | 选填         |  10          | 预留实例数量。大于等于外层的count值， 默认取外层的count值  |
 | cron   | string       | 必填           | 0 */10 * * * ?     | [cron表达式](https://support.huaweicloud.com/usermanual-functiongraph/functiongraph_01_0908.html)   |
+
+如果指定定时配置，执行命令 `s reserved put --qualifier-name v1 --count 3 --config ./config.json`
