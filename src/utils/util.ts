@@ -214,3 +214,10 @@ export function extendFunctionInfos(functions: IFunctionProps) {
     const func = merge({}, functions.extend, functions);
     return omit(func, ['extend']);
 }
+
+
+export function handlerErrorMsg(spinner, logger, msg) {
+    spinner.fail(msg);
+    logger.error(msg);
+    throw msg;
+}

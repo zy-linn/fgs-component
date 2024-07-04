@@ -8,6 +8,7 @@ import { Fun2sService } from "./services/fun2s.service";
 import { LocalService } from "./services/local.service";
 import { InvokeService } from "./services/invoke.service";
 import { InfoService } from "./services/info.service";
+import { ReservedService } from "./services/reserved.service";
 
 export default class ComponentDemo {
   /**
@@ -52,7 +53,7 @@ export default class ComponentDemo {
       const deployInfo = await service[subCommand](props, client);
       help(deployInfo);
     } catch (err) {
-      return;
+      throw err;
     }
   }
 
@@ -93,7 +94,7 @@ export default class ComponentDemo {
       }
       const infos = await service[subCommand](props, client);
       return { [props.functionName]: infos };
-    } catch (err) {
+    } catch (error) {
       return;
     }
   }
@@ -165,6 +166,24 @@ export default class ComponentDemo {
         return;
       }
       return await service.info(props, client);
+    } catch (error) {
+      return;
+    }
+  }
+
+  /**
+   * 函数查看
+   * @param inputs 
+   * @returns 
+   */
+  public async reserved(inputs: InputProps): Promise<any> {
+    try {
+      const service = new ReservedService();
+      const { props, client, isHelp, subCommand } = await service.handleInputs(inputs);
+      if (isHelp) {
+        return;
+      }
+      return await service[subCommand](props, client);
     } catch (error) {
       return;
     }

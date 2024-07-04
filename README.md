@@ -21,5 +21,6 @@
 | --- | --- | --- |--- |
 | [**部署 deploy**](docs/zh/command/deploy.md)   | [**本地调试 local**](docs/zh/command/local.md)   | [**版本 version**](docs/zh/command/version.md)      | [**项目迁移 fun2s**](docs/zh/command/fun2s.md) | 
 | [**删除 remove**](docs/zh/command/remove.md)   | [函数执行 invoke](docs/zh/command/invoke.md)   | [**别名 alias**](docs/zh/command/alias.md)     | [查看函数 info](docs/zh/command/info.md) | 
+|   |   | [预留实例 reserved](docs/zh/command/reserved.md)  |  | 
 
 在使用华为云函数计算（FunctionGraph）组件时，还会涉及到资源描述文件的编写，关于华为云函数计算（FunctionGraph）组件的 Yaml 规范可以参考[**华为云函数计算（FunctionGraph） Yaml 规范文档**](docs/zh/yaml/readme.md)

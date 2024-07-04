@@ -4,7 +4,7 @@ import { VERSION, VERSION_LIST, VERSION_PUBLISH } from "../help/version";
 import { ICredentials, IInputs, IProperties, InputProps } from "../interface/interface";
 
 import { commandParse, help, spinner } from "@serverless-devs/core";
-import { extendFunctionInfos, getFunctionClient, handlerResponse, handlerUrn, isYml, tableShow } from "../utils/util";
+import { extendFunctionInfos, getFunctionClient, handlerErrorMsg, handlerResponse, handlerUrn, isYml, tableShow } from "../utils/util";
 import { CreateFunctionVersionRequest, CreateFunctionVersionRequestBody, DeleteFunctionRequest, ListFunctionVersionsRequest } from "@huaweicloud/huaweicloud-sdk-functiongraph";
 
 export interface IVersion {
@@ -28,7 +28,7 @@ export class VersionService {
     public async handleInputs(inputs: InputProps): Promise<IInputs> {
         logger.debug(`inputs.props: ${JSON.stringify(inputs.props)}`);
         if (!inputs?.credentials?.AccessKeyID || !inputs?.credentials?.SecretAccessKey) {
-            throw new Error("Havn't set huaweicloud credentials. Run $s config add .");
+            handlerErrorMsg(this.spin, logger, "Havn't set huaweicloud credentials. Run $s config add .");
         }
 
         const parsedArgs: { [key: string]: any } = commandParse(inputs, {
@@ -44,7 +44,7 @@ export class VersionService {
         logger.debug(`version subCommand: ${subCommand}`);
         if (!VERSION_COMMAND.includes(subCommand)) {
             help(VERSION);
-            throw new Error(`Does not support ${subCommand} command.`);
+            handlerErrorMsg(this.spin, logger, `Does not support ${subCommand} command.`);
         }
 
         if (parsedData.help) {
@@ -66,11 +66,11 @@ export class VersionService {
         };
 
         if (!endProps.region) {
-            throw new Error("Region not found. Please specify with --region");
+            handlerErrorMsg(this.spin, logger, "Region not found. Please specify with --region");
         }
 
         if (!endProps.functionName) {
-            throw new Error("Function Name not found. Please specify with --function-name.");
+            handlerErrorMsg(this.spin, logger, "Function Name not found. Please specify with --function-name.");
         }
 
         const credentials: ICredentials = inputs.credentials;

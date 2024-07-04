@@ -3,7 +3,7 @@ import logger from "../common/logger";
 import { IInputs, ICredentials } from "../interface/interface";
 
 import { commandParse, help, spinner } from "@serverless-devs/core";
-import { extendFunctionInfos, getFunctionClient, handlerResponse, handlerUrn, isString, tableShow } from "../utils/util";
+import { extendFunctionInfos, getFunctionClient, handlerErrorMsg, handlerResponse, handlerUrn, isString, tableShow } from "../utils/util";
 import { CreateVersionAliasRequest, CreateVersionAliasRequestBody, DeleteVersionAliasRequest, ListVersionAliasesRequest, ShowVersionAliasRequest, UpdateVersionAliasRequest, UpdateVersionAliasRequestBody, VersionStrategy, VersionStrategyRules } from "@huaweicloud/huaweicloud-sdk-functiongraph";
 import { ALIAS, ALIAS_GET, ALIAS_LIST, ALIAS_PUBLISH } from "../help/alias";
 
@@ -36,7 +36,7 @@ export class AliasService {
         logger.debug(`inputs.args: ${JSON.stringify(inputs.args)}`);
         logger.debug(`inputs.argsObj: ${JSON.stringify(inputs.argsObj)}`);
         if (!inputs.credentials.AccessKeyID || !inputs.credentials.SecretAccessKey) {
-            throw new Error("Havn't set huaweicloud credentials. Run $s config add .");
+            handlerErrorMsg(this.spin, logger, "Havn't set huaweicloud credentials. Run $s config add .");
         }
 
         const parsedArgs: { [key: string]: any } = commandParse(inputs, {
@@ -52,7 +52,7 @@ export class AliasService {
         logger.debug(`alias subCommand: ${subCommand}`);
         if (!ALIAS_COMMAND.includes(subCommand)) {
             help(ALIAS);
-            throw new Error(`Does not support ${subCommand} command.`);
+            handlerErrorMsg(this.spin, logger, `Does not support ${subCommand} command.`);
         }
 
         if (parsedData.help) {
@@ -78,11 +78,11 @@ export class AliasService {
             table: parsedData.table ?? false
         };
         if (!endProps.region) {
-            throw new Error("Region not found. Please specify with --region");
+            handlerErrorMsg(this.spin, logger, "Region not found. Please specify with --region");
         }
 
         if (!endProps.functionName) {
-            throw new Error("Function Name not found. Please specify with --function-name.");
+            handlerErrorMsg(this.spin, logger, "Function Name not found. Please specify with --function-name.");
         }
 
         const credentials: ICredentials = inputs.credentials;
@@ -109,7 +109,7 @@ export class AliasService {
     async get(props: IAliasProps, client: FunctionClient) {
         const { aliasName, urn } = props;
         if (!aliasName) {
-            throw new Error('AliasName is required. Please specify with --alias-name');
+            handlerErrorMsg(this.spin, logger, 'AliasName is required. Please specify with --alias-name');
         }
         this.spin.info(`Querying details about alias [${aliasName}]`);
         logger.debug(`Querying details about alias [${aliasName}]`);
@@ -218,6 +218,7 @@ export class AliasService {
         const list = await this.list({ ...props, table: false }, client, false);
         return list.find(l => l.name === props.aliasName);
     }
+
     /**
      * 校验参数是否正确
      * @param aliasName 别名
@@ -260,7 +261,11 @@ export class AliasService {
      * @returns 
      */
     private async createAlias(props: IAliasProps, client: FunctionClient) {
-        const body = new CreateVersionAliasRequestBody().withName(props.aliasName).withVersion(props.version);
+        const body = new CreateVersionAliasRequestBody()
+            .withName(props.aliasName)
+            .withVersion(props.version)
+            .withAdditionalVersionStrategy({})
+            .withAdditionalVersionWeights({});
         this.handlerAliasBody(props, body);
         const request = new CreateVersionAliasRequest().withFunctionUrn(props.urn).withBody(body);
         logger.debug(`createAlias: ${JSON.stringify(request)}`);
@@ -274,7 +279,10 @@ export class AliasService {
      * @returns 
      */
     private async updateAlias(props: IAliasProps, client: FunctionClient) {
-        const body = new UpdateVersionAliasRequestBody().withVersion(props.version);
+        const body = new UpdateVersionAliasRequestBody()
+            .withVersion(props.version)
+            .withAdditionalVersionStrategy({})
+            .withAdditionalVersionWeights({});
         this.handlerAliasBody(props, body);
         const request = new UpdateVersionAliasRequest().withFunctionUrn(props.urn).withAliasName(props.aliasName).withBody(body);
         logger.debug(`updateAlias: ${JSON.stringify(request)}`);
@@ -296,7 +304,7 @@ export class AliasService {
             body.withAdditionalVersionWeights({ [gVersion]: weight });
             return;
         }
-        if (!!rulePolicy && (!hasWeight || isRule)) { //规则配置存在且灰度方式为规则或泉州不存在
+        if (!!rulePolicy && (!hasWeight || isRule)) { //规则配置存在且灰度方式为规则或权重不存在
             const rules = this.handlerRules(rulePolicy);
             body.withAdditionalVersionStrategy({ [gVersion]: rules});
             return;
