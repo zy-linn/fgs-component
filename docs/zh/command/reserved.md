@@ -92,7 +92,7 @@
 Reserved instances [fgs-test] updated.
 ```
 
-> 💡 删除预留：删除预留的方法，可以通过`s reserved put`命令，进行删除，只需要将`count`调整为 0 即可。例如`s reserved put --qualifier release --count 0`
+> 💡 删除预留：删除预留的方法，可以通过`s reserved put`命令，进行删除，只需要将`count`调整为 0 即可。例如`s reserved put --qualifier-name fgs-test --count 0`
 
 > 单纯通过`count`参数进行控制的只是非常简单的配置，除此之外还支持定时策略配置方法，此时就需要对`--config`参数进行配置，`--config`参数识别的是一个 JSON 文件，基础格式如下：
 
