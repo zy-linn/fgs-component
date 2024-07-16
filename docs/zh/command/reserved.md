@@ -111,7 +111,7 @@ Reserved instances [fgs-test] updated.
       "startTime": "2024-06-31T00:00:00Z",
       "expiredTime": "2024-12-31T00:00:00Z",
       "count": 5,
-      "cron": "0 */5 * * * ?"
+      "cron": "0 */20 * * * ?"
     }
   ]
 }
@@ -123,6 +123,6 @@ Reserved instances [fgs-test] updated.
 | startTime | string        | 必填             | 2024-01-31T00:00:00Z          | 定时策略开始生效时间    |
 | expiredTime   | string       | 必填           | 2024-12-31T00:00:00Z           | 定时策略失效时间      |
 | count   | number     | 选填         |  10          | 预留实例数量。大于等于外层的count值， 默认取外层的count值  |
-| cron   | string       | 必填           | 0 */10 * * * ?     | [cron表达式](https://support.huaweicloud.com/usermanual-functiongraph/functiongraph_01_0908.html)   |
+| cron   | string       | 必填           | 0 */10 * * * ?     | [cron表达式](https://support.huaweicloud.com/usermanual-functiongraph/functiongraph_01_0908.html)  注：触发间隔需要大于或等于10分钟 |
 
 如果指定定时配置，执行命令 `s reserved put --qualifier-name v1 --count 3 --config ./config.json`
