@@ -42,8 +42,8 @@ export class ReservedService {
         }
 
         const parsedArgs: { [key: string]: any } = commandParse(inputs, {
-            boolean: ["help", 'table'],
-            string: ['region', 'function-name', 'qualifier-type', 'qualifier-name', 'idle-mode', 'config', 'config-path'],
+            boolean: ["help", 'table', 'idle-mode'],
+            string: ['region', 'function-name', 'qualifier-type', 'qualifier-name', 'config', 'config-path'],
             alias: { help: "h" },
         });
 

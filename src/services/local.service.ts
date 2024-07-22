@@ -6,7 +6,7 @@ import { commandParse, help } from "@serverless-devs/core";
 import { ICredentials, IInputs, IProperties, InputProps } from "../interface/interface";
 import logger from "../common/logger";
 import { LOCAL, LOCAL_INVOKE } from "../help/local";
-import { extendFunctionInfos, getFunctionClient, handlerUrn } from "../utils/util";
+import { extendFunctionInfos, handlerUrn } from "../utils/util";
 import { IFunctionProps } from '../interface/function.interface';
 import { EventService } from './event.service';
 import { IdeService } from './ide.service';
@@ -29,9 +29,6 @@ export class LocalService {
     }
     public async handleInputs(inputs: InputProps): Promise<IInputs> {
         logger.debug(`inputs.props: ${JSON.stringify(inputs.props)}`);
-        if (!inputs?.credentials?.AccessKeyID || !inputs?.credentials?.SecretAccessKey) {
-            throw new Error("Havn't set huaweicloud credentials. Run $s config add .");
-        }
 
         const parsedArgs: { [key: string]: any } = commandParse(inputs, {
             boolean: ["help", "debug"],
@@ -66,21 +63,16 @@ export class LocalService {
         props.function = extendFunctionInfos(props.function);
         logger.debug(`props: ${JSON.stringify(props)}`);
 
-        if (!props?.region) {
-            throw new Error("Region not found. Please specify with --region");
-        }
-
         const credentials: ICredentials = inputs.credentials;
 
-        const { client, projectId } = await getFunctionClient(credentials, props.region);
+        const projectId = 'projectId';
 
         const urn = handlerUrn(props.region, projectId, 'default', props.function.functionName, 'latest');
         return {
             credentials,
             subCommand,
             baseDir: path.dirname(inputs.path.configPath),
-            props: { ...props, urn, projectId, ...this.getOptions(parsedData) },
-            client,
+            props: { ...props, urn, ...this.getOptions(parsedData) },
             args: props.args,
         };
     }
@@ -107,6 +99,7 @@ export class LocalService {
             if (props.mode === 'api') {
                 await this.handlerAPi(props.function, props.projectId, port);
             } else {
+                logger.debug(`local invoke baseDir: ${baseDir}`);
                 result = await this.handlerNormal(props, baseDir, port);
             }
             return {
@@ -146,9 +139,9 @@ export class LocalService {
                 RUNTIME_PACKAGE: "default",
                 RUNTIME_PROJECT_ID: projectId,
                 RUNTIME_FUNC_VERSION: "lastest",
-                RUNTIME_MEMORY: functions.memorySize,
+                RUNTIME_MEMORY: functions.memorySize ?? 256,
                 RUNTIME_USERDATA: JSON.stringify(functions.userData ?? functions.environmentVariables ?? {}),
-                RUNTIME_TIMEOUT: functions.timeout
+                RUNTIME_TIMEOUT: functions.timeout ?? 30
             },
             entry,
             handler,
