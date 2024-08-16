@@ -80,6 +80,12 @@ export const LOCAL_INVOKE = [
                     '[Optional] The exposed port of http server',
                 type: Number,
             },
+            {
+                name: 'root-path',
+                description:
+                    '[Optional] The debug excute path',
+                type: String,
+            },
         ],
     },
     { ...GLOBAL_OPTIONS },

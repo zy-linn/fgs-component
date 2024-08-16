@@ -6,7 +6,7 @@ import { commandParse, help } from "@serverless-devs/core";
 import { ICredentials, IInputs, IProperties, InputProps } from "../interface/interface";
 import logger from "../common/logger";
 import { LOCAL, LOCAL_INVOKE } from "../help/local";
-import { extendFunctionInfos, handlerUrn } from "../utils/util";
+import { extendFunctionInfos, handlerPath, handlerUrn, mkdirSync, rmdirSync, writeFileSync } from "../utils/util";
 import { IFunctionProps } from '../interface/function.interface';
 import { EventService } from './event.service';
 import { IdeService } from './ide.service';
@@ -66,13 +66,15 @@ export class LocalService {
         const credentials: ICredentials = inputs.credentials;
 
         const projectId = 'projectId';
-
+        const tempPath = path.join(__dirname, props.function.functionName);
         const urn = handlerUrn(props.region, projectId, 'default', props.function.functionName, 'latest');
+        rmdirSync(props.tempPath);
+        const options = this.getOptions(parsedData);
         return {
             credentials,
             subCommand,
-            baseDir: path.dirname(inputs.path.configPath),
-            props: { ...props, urn, ...this.getOptions(parsedData) },
+            baseDir: path.normalize(options.rootPath as string),
+            props: { ...props, urn, projectId, tempPath, ...options },
             args: props.args,
         };
     }
@@ -96,8 +98,9 @@ export class LocalService {
         const port = await PortService.getInstance().getPort(props.function.functionName);
         try {
             let result = null;
+            mkdirSync(props.tempPath);
             if (props.mode === 'api') {
-                await this.handlerAPi(props.function, props.projectId, port);
+                await this.handlerAPi(props.function, props.projectId, props.tempPath, port);
             } else {
                 logger.debug(`local invoke baseDir: ${baseDir}`);
                 result = await this.handlerNormal(props, baseDir, port);
@@ -114,6 +117,8 @@ export class LocalService {
             return {
                 status: 'failed',
             };
+        } finally {
+            rmdirSync(props.tempPath);
         }
     }
 
@@ -125,11 +130,12 @@ export class LocalService {
             eventStdin: argsData['event-stdin'],
             eventFile: argsData['event-file'],
             serverPort: argsData['server-port'],
+            rootPath: handlerPath(argsData['root-path']) ?? process.cwd(),
             mode: argsData.mode
         }
     }
 
-    private handlerEnvs(functions: IFunctionProps, projectId: string = ''): string {
+    private handlerEnvs(functions: IFunctionProps, projectId: string = '', tempPath = '') {
         const handlers = functions.handler?.split('.') ?? [];
         const handler = handlers.pop();
         const entry = path.resolve(functions.code?.codeUri, [...handlers, 'js'].join('.'));
@@ -147,7 +153,7 @@ export class LocalService {
             handler,
         };
         logger.debug(`handlerEnvs: ${JSON.stringify(envs)}`);
-        return Buffer.from(JSON.stringify(envs), 'utf-8').toString('base64');
+        writeFileSync(path.join(tempPath, 'init.json'), JSON.stringify(envs));
     }
 
     /**
@@ -170,24 +176,25 @@ export class LocalService {
         PortService.getInstance().setDebugPort(functionName, port);
     }
 
-    private async startExpress(functions: IFunctionProps, projectId: string, isDebug = false): Promise<boolean> {
+    private async startExpress(functions: IFunctionProps, projectId: string, tempPath: string, isDebug = false): Promise<boolean> {
         const port = await PortService.getInstance().getPort(functions.functionName);
         logger.debug('startExpress port: ' + port);
         const options = isDebug ? await this.ideService.getDebugEnv(functions.functionName, functions.runtime) : '';
         logger.debug('startExpress options: ' + options);
-        const envs = this.handlerEnvs(functions, projectId);
-        const command = `node ${options} ${path.join(__dirname, 'app.js')} ${port} ${envs}`;
-        logger.debug('start command: ' + command);
-        exec(command.split('\\').join('/'));
+        this.handlerEnvs(functions, projectId, tempPath);
+        const command = `node ${options} ${path.join(__dirname, 'app.js')} ${port} ${tempPath}`;
+        exec(command.split('\\').join('/'), {maxBuffer: 1024 * 1024 * 1024 * 1024});
         const result = await this.apiService.checkContainer(port, isDebug);
+        logger.debug('start command: ' + command.split('\\').join('/'));
         if (result) {
+            logger.debug('check container success');
             return true;
         }
         throw new Error('start error');
     }
 
-    private async handlerAPi(functions: IFunctionProps, projectId, port) {
-        await this.startExpress(functions, projectId);
+    private async handlerAPi(functions: IFunctionProps, projectId, tempPath, port) {
+        await this.startExpress(functions, projectId, tempPath);
         logger.log(`API ${functions.functionName} was registered`, 'green');
         logger.log('\turl: ' + `http://localhost:${port}/invoke`, 'yellow');
     }
@@ -196,7 +203,8 @@ export class LocalService {
         const event = await this.eventService.getEvent(props);
         const isDebug = props.debugIde === 'vscode';
         isDebug && await this.ideService.writeConfigForVscode(baseDir, props.function.functionName, props.function.runtime, baseDir); // 设置vscode debug配置
-        await this.startExpress(props.function, props.projectId, isDebug);
+        await this.startExpress(props.function, props.projectId, props.tempPath, isDebug);
+        logger.debug(`start express success` );
         const invoke = await this.apiService.invokeFunction(event, port);
         logger.debug(`result: ${JSON.stringify(invoke, null, 4)}` );
         await this.apiService.sleep(); // 停止 500ms
