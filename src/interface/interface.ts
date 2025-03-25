@@ -21,6 +21,7 @@ export enum CommandType {
 }
 
 export interface ICredentials {
+  Alias?: string;
   AccountID?: string;
   AccessKeyID?: string;
   AccessKeySecret?: string;
@@ -36,7 +37,7 @@ export interface ICredentials {
 }
 
 export interface InputProps {
-  props: IProperties; // 用户自定义输入
+  props: any; // 用户自定义输入
   credentials: ICredentials; // 用户秘钥
   appName: string; //
   project: {
@@ -57,7 +58,7 @@ export interface IProperties {
   urn?: string;
   function?: IFunctionProps;
   triggers?: ITriggerProps;
-  tag: string;
+  tag?: string;
   [prop: string]: any;
 }
 
@@ -69,6 +70,7 @@ export interface IInputs {
   props?: IProperties;
   client?: FunctionClient;
   args?: string;
+  baseDir?: string;
   isHelp?: boolean;
 }
 
@@ -82,4 +84,14 @@ export interface IRemoveProps {
   triggerType?: string;
   triggerInfo?: ITriggerProps;
   isYml: boolean;
+}
+
+export enum RuntimeType {
+  NODE = 'node',
+  PYTHON = 'python',
+  PHP = 'php',
+  HTTP = 'http',
+  GO = 'go',
+  JAVA = 'java',
+  CSHARP = 'c#'
 }

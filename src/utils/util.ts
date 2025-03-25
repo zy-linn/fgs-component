@@ -2,9 +2,11 @@ import * as fs from "fs";
 import * as compressing from 'compressing';
 import Table from 'tty-table';
 import inquirer from 'inquirer';
-import { ICredentials, ServiceType } from "../interface/interface";
+import { merge, omit } from 'lodash';
+import { ICredentials, RuntimeType, ServiceType } from "../interface/interface";
 import { FunctionClient } from "../clients/function.client";
 import { IamClient } from "../clients/iam.client";
+import { IFunctionProps } from "../interface/function.interface";
 
 /**
  * 代码转化成base64
@@ -188,4 +190,27 @@ export async function promptForConfirmOrDetails(message: string): Promise<boolea
  */
 export function isYml(configPath = '') {
     return configPath.endsWith('s.yml') || configPath.endsWith('s.yaml');
+}
+
+/**
+ * 获取函数类型
+ * @param runtime 函数运行时
+ * @returns 
+ */
+export function getRuntimeType(runtime: string = ''): RuntimeType {
+    const types = runtime?.toLocaleLowerCase().trim().match('^(node|python|go|php|java|http|c#)') || [''];
+    return types[0] as RuntimeType;
+}
+
+/**
+ * 扩展函数对象
+ * @param functions 
+ * @returns 
+ */
+export function extendFunctionInfos(functions: IFunctionProps) {
+    if (!functions || !functions.extend) {
+        return functions;
+    }
+    const func = merge({}, functions.extend, functions);
+    return omit(func, ['extend']);
 }

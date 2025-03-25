@@ -23,20 +23,25 @@
     "watch": "tsc -w",
     "prebuild": "rimraf dist",
     "postinstall": "npm run build",
-    "build": "esbuild src/index.ts --bundle --log-level=error --minify --platform=node --format=cjs --target=node10.4 --external:@serverless-devs/core --outfile=dist/index.js"
+    "build": "esbuild src/index.ts --bundle --log-level=error --minify --platform=node --format=cjs --target=node10.4 --external:@serverless-devs/core --outfile=dist/index.js",
+    "postbuild": "node resources/copy.js"
   },
   "dependencies": {
     "@huaweicloud/huaweicloud-sdk-core": "^3.1.18",
     "@huaweicloud/huaweicloud-sdk-functiongraph": "^3.1.18",
     "@huaweicloud/huaweicloud-sdk-iam": "^3.1.18",
     "@serverless-devs/core": "^0.1.48",
+    "axios": "^1.6.7",
     "compressing": "^1.6.3",
     "esdk-obs-nodejs": "^3.21.6",
+    "fs-extra": "^11.2.0",
     "inquirer": "^8.2.2",
     "js-yaml": "^4.1.0",
+    "lodash": "^4.17.21",
     "tty-table": "^4.2.1"
   },
   "devDependencies": {
+    "@types/fs-extra": "^11.0.4",
     "@types/node": "^14.0.23",
     "esbuild": "^0.13.8",
     "rimraf": "^3.0.2",

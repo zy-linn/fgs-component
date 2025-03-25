@@ -10,6 +10,7 @@ export interface IFunctionProps
   codeType: string; // 函数代码类型
   package?: string;
   codeUrl?: string;
+  tags?: Array<{ [prop: string]: string }>; // 标签
   environmentVariables?: { [prop: string]: any };
   vpcId?: string;
   subnetId?: string;
@@ -19,6 +20,7 @@ export interface IFunctionProps
   };
   userData?: any;
   encryptedUserData?: any;
+  extend?: { [prop: string]: any }; // 扩展字段
 }
 
 export interface BasicConfig {
@@ -61,7 +63,7 @@ export interface NetConfig {
 
 export interface ConcurrencyConfig {
   concurreny?: number;
-  concurrenyNum?: number;
+  concurrentNum?: number;
 }
 
 export interface LogConfig {
