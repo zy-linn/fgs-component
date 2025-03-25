@@ -21,6 +21,7 @@ export interface IFunctionProps
   userData?: any;
   encryptedUserData?: any;
   extend?: { [prop: string]: any }; // 扩展字段
+  ltsCustomTag: {[key: string]: string};
 }
 
 export interface BasicConfig {

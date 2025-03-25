@@ -28,7 +28,7 @@
   },
   "dependencies": {
     "@huaweicloud/huaweicloud-sdk-core": "^3.1.18",
-    "@huaweicloud/huaweicloud-sdk-functiongraph": "^3.1.18",
+    "@huaweicloud/huaweicloud-sdk-functiongraph": "^3.1.141",
     "@huaweicloud/huaweicloud-sdk-iam": "^3.1.18",
     "@serverless-devs/core": "^0.1.48",
     "axios": "^1.6.7",

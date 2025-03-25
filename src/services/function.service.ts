@@ -42,6 +42,7 @@ import {
 type RequestBody = UpdateFunctionConfigRequestBody | CreateFunctionRequestBody;
 
 export class FunctionService {
+  // 会在判断函数是否存在时进行更新
   private metaData: any;
   private spin = spinner();
 
@@ -130,6 +131,7 @@ export class FunctionService {
     this.setNetConfig(body, functionInfo);
     this.setEnvConfig(body, functionInfo);
     this.setLogConfig(body, functionInfo);
+    this.setLogTag(body, functionInfo);
     this.setAdvancedConfig(body, functionInfo);
     functionInfo.dependVersionList &&
       body.withDependVersionList(functionInfo.dependVersionList);
@@ -377,6 +379,7 @@ export class FunctionService {
     this.setEnvConfig(body, functionInfo, config);
     this.setConcurrenyConfig(body, functionInfo, config);
     this.setLogConfig(body, functionInfo, config);
+    this.setLogTag(body, functionInfo);
     this.setAdvancedConfig(body, functionInfo, config);
     return body;
   }
@@ -585,7 +588,7 @@ export class FunctionService {
       req.withBody(body);
       client.createTags(req);
     } catch (error) {
-      logger.debug('Create tags failed.' + JSON.stringify(error));
+      logger.debug("Create tags failed." + JSON.stringify(error));
     }
   }
 
@@ -618,21 +621,41 @@ export class FunctionService {
     return config !== undefined;
   }
 
-  private async handlerTags(props: IProperties, client: FunctionGraphClient): Promise<Array<KvItem>> {
+  private async handlerTags(
+    props: IProperties,
+    client: FunctionGraphClient
+  ): Promise<Array<KvItem>> {
     const serviceName = props.service?.name;
     let propTags = props.function.tags ?? {};
     if (serviceName && !propTags[serviceName]) {
       propTags[serviceName] = serviceName;
     }
-    
-    if (Object.keys(propTags).length === 0) { // 没有配置标签 
+
+    if (Object.keys(propTags).length === 0) {
+      // 没有配置标签
       return [];
     }
     const { tags = [] } = await this.getTags(props.urn, client);
     // 获取已有标签并用配置的覆盖
-    tags.filter(({key})=> !propTags[key]).forEach(({key, value}) => {
-      propTags[key] = value;
-    });
-    return Object.keys(propTags).map(key => new KvItem().withKey(key).withValue(propTags[key]));
+    tags
+      .filter(({ key }) => !propTags[key])
+      .forEach(({ key, value }) => {
+        propTags[key] = value;
+      });
+    return Object.keys(propTags).map((key) =>
+      new KvItem().withKey(key).withValue(propTags[key])
+    );
+  }
+
+  /**
+   * 设置日志标签：1.不传或空对象会将日志标签置空；2. 全量替换
+   * @param body
+   * @param newData
+   */
+  private setLogTag(body: RequestBody, newData: IFunctionProps) {
+    if (newData.ltsCustomTag) {
+      logger.debug(`log tag: ${newData.ltsCustomTag}`);
+      body.withLtsCustomTag(newData.ltsCustomTag);
+    }
   }
 }
