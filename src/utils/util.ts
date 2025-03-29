@@ -1,5 +1,6 @@
 import * as fs from "fs";
 import * as compressing from 'compressing';
+import * as path from "path";
 import Table from 'tty-table';
 import inquirer from 'inquirer';
 import { merge, omit } from 'lodash';
@@ -38,12 +39,61 @@ export async function startZip(codePath: string, name = 'index.zip'): Promise<st
 
 /**
 * 删除文件
-* @param path 
+* @param filePath 
 */
-export function deleteFile(path: string): void {
-    if (fs.existsSync(path)) {
-        fs.unlinkSync(path);
+export function deleteFile(filePath: string): void {
+    if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
     }
+}
+
+/**
+ * 删除文件夹
+ * @param filePath 路径 
+ * @param recursive 是否递归
+ */
+export function rmdirSync(filePath, recursive = true) {
+    if (fs.existsSync(filePath)) {
+        fs.rmdirSync(filePath, {recursive});
+    }
+}
+
+/**
+ * 创建文件夹
+ * @param filePath 路径
+ * @param recursive 是否递归
+ * @returns 
+ */
+export function mkdirSync(filePath = '', recursive = true) {
+    if (fs.existsSync(filePath)) {
+        return;
+    }
+    fs.mkdirSync(filePath, {recursive});
+}
+
+/**
+ * 同步写入文件
+ * @param path 路径
+ * @param content 内容
+ */
+export function writeFileSync(filePath, content) {
+    fs.writeFileSync(filePath, content, 'utf-8');
+}
+
+/**
+ * 获取临时路径
+ * @param name 函数名称
+ * @returns 
+ */
+export function handlerPath(filePath = '') {
+    if (!fs.existsSync(filePath)) { // 文件不存在
+        return null;
+    }
+    console.log(process.cwd(), __dirname);
+    if (path.isAbsolute(filePath)) {
+        return filePath;
+    }
+    return path.resolve(process.cwd(), filePath);
 }
 
 /**
@@ -213,4 +263,11 @@ export function extendFunctionInfos(functions: IFunctionProps) {
     }
     const func = merge({}, functions.extend, functions);
     return omit(func, ['extend']);
+}
+
+
+export function handlerErrorMsg(spinner, logger, msg) {
+    spinner.fail(msg);
+    logger.error(msg);
+    throw msg;
 }

@@ -117,6 +117,16 @@ export const ALIAS_PUBLISH = [
                 description: '[Optional] The weight for grayscale version',
                 type: String,
             },
+            {
+                name: 'resolve-policy',
+                description: '[Optional] Gray scale, value: Percentage/Rule. Percentage is a percentage grayscale, the default value; Rule is regular grayscale',
+                type: String,
+              },
+              {
+                name: 'rule-policy',
+                description: '[Optional] Rule grayscale rules',
+                type: String,
+              },
         ],
     },
     { ...GLOBAL_OPTIONS },
