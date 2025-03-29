@@ -60,7 +60,8 @@ export class FunctionService {
         throw new Error("First configure the function in s.yml.");
       }
       if (
-        (!props.function.agencyName || !props.function.xrole) &&
+        !props.function.agencyName &&
+        !props.function.xrole &&
         (props.function.vpcId || props.function.subnetId)
       ) {
         throw new Error("First configure the function agency in s.yml.");
@@ -71,6 +72,7 @@ export class FunctionService {
         );
       }
       const isExist = await this.config(client, props.urn);
+      logger.debug(`Whether function [${props.urn}] exists [${isExist}].`);
       const response = isExist
         ? await this.update(props, client, this.metaData)
         : await this.create(props, client);
@@ -144,8 +146,7 @@ export class FunctionService {
     }
     this.spin.info(`Creating function [${functionInfo.functionName}].`);
     logger.debug(`Creating function [${functionInfo.functionName}].`);
-    logger.debug("------------create body-------------");
-    logger.debug(body);
+    logger.debug(`create function body [${JSON.stringify(body)}]`);
     try {
       const result: any = await client.createFunction(
         new CreateFunctionRequest().withBody(body)
@@ -225,10 +226,10 @@ export class FunctionService {
         body.withCodeUrl(props.function.codeUrl);
       } else {
         const zipFile = await startZip(props.function.code.codeUri);
-        this.spin.succeed("File compression completed");
+        logger.debug("File compression completed");
         body.withFuncCode(new FuncCode().withFile(zipFile));
       }
-
+      logger.debug(`update code body [${JSON.stringify(body)}]`);
       const result: any = await client.updateFunctionCode(
         new UpdateFunctionCodeRequest()
           .withBody(body)
@@ -242,6 +243,15 @@ export class FunctionService {
         `Code of function [${props.function.functionName}] updated.`
       );
     } catch (error) {
+      if (error?.errorCode === "FSS.0409") {
+        logger.debug(
+          `Same code, no need update code for funtion [${props.function.functionName}].`
+        );
+        this.spin.succeed(
+          `Code of function [${props.function.functionName}] updated.`
+        );
+        return;
+      }
       this.spin.fail(
         `Update code of function [${props.function.functionName}] failed.`
       );
@@ -271,15 +281,14 @@ export class FunctionService {
     logger.debug(
       `Updating configurations of function [${props.function.functionName}].`
     );
-    this.createTags(props, client);
     try {
+      await this.createTags(props, client);
       const body = this.getConfigRequestBody(props.function, config);
-      logger.debug("------------update body-----------");
-      logger.debug(JSON.stringify(body));
       const request = new UpdateFunctionConfigRequest()
         .withFunctionUrn(props.urn)
         .withBody(body);
-      const result: any = client.updateFunctionConfig(request);
+      logger.debug(`update config request [${JSON.stringify(request)}]`);
+      const result: any = await client.updateFunctionConfig(request);
       handlerResponse(result);
       this.spin.succeed(
         `Configurations of function [${props.function.functionName}] updated.`
@@ -577,10 +586,10 @@ export class FunctionService {
   private async createTags(props: IProperties, client: FunctionGraphClient) {
     try {
       const kvItems = await this.handlerTags(props, client);
+      logger.debug(`create tags [${JSON.stringify(kvItems)}].`);
       if (kvItems.length === 0) {
         return;
       }
-      await this.deleteTags(props.urn, kvItems, client);
       const req = new CreateTagsRequest();
       req.withResourceType("functions");
       req.withResourceId(props.urn);
@@ -588,9 +597,10 @@ export class FunctionService {
       body.withAction("create");
       body.withTags(kvItems);
       req.withBody(body);
-      client.createTags(req);
+      await client.createTags(req);
     } catch (error) {
       logger.debug("Create tags failed." + JSON.stringify(error));
+      return;
     }
   }
 
@@ -606,6 +616,10 @@ export class FunctionService {
     tags: KvItem[],
     client: FunctionGraphClient
   ) {
+    logger.debug(`delete tags [${JSON.stringify(tags)}].`);
+    if (tags.length === 0) {
+      return;
+    }
     const req = new DeleteTagsRequest();
     req.withResourceType("functions");
     req.withResourceId(urn);
@@ -613,7 +627,7 @@ export class FunctionService {
     body.withAction("delete");
     body.withTags(tags);
     req.withBody(body);
-    client.deleteTags(req);
+    return client.deleteTags(req);
   }
 
   private isUpdate(
@@ -637,13 +651,22 @@ export class FunctionService {
       // 没有配置标签
       return [];
     }
-    const { tags = [] } = await this.getTags(props.urn, client);
-    // 获取已有标签并用配置的覆盖
-    tags
-      .filter(({ key }) => !propTags[key])
-      .forEach(({ key, value }) => {
-        propTags[key] = value;
-      });
+    const isMerge = props.function?.tagPolicy?.toLocaleLowerCase() === "merge";
+    const tags = ((await this.getTags(props.urn, client)) ?? {}).tags ?? [];
+    logger.debug(`get tags [${JSON.stringify(tags)}].`);
+    if (tags.length > 0) {
+      // 如果标签存在，先删除
+      await this.deleteTags(props.urn, tags, client);
+    }
+    if (isMerge) {
+      // 获取已有标签并用配置的覆盖
+      tags
+        .filter(({ key }) => !propTags[key])
+        .forEach(({ key, value }) => {
+          propTags[key] = value;
+        });
+    }
+
     return Object.keys(propTags).map((key) =>
       new KvItem().withKey(key).withValue(propTags[key])
     );

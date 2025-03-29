@@ -45,6 +45,7 @@
 | config        | c        | 选填            | 指定断点调试时使用的 IDE，当前只支持 `vscode`, 取值范围：`vscode`  |
 | debug-port    | d        | 选填            | 指定断点调试端口|
 | server-port   | -        | 选填            | 自定义本地监听 `server` 的端口     |
+| root-path   | -        | 选填            | 工程根路径，不填默认为执行命令的路径     |
 
 > 当前命令还支持部分全局参数（例如`-a/--access`, `--debug`, `--help`等），详情可参考 [Serverless Devs 全局参数文档](https://github.com/Serverless-Devs/Serverless-Devs/blob/master/docs/zh/command/readme.md#%E5%85%A8%E5%B1%80%E5%8F%82%E6%95%B0)
 

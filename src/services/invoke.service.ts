@@ -3,7 +3,7 @@ import { commandParse, spinner, help } from "@serverless-devs/core";
 import logger from "../common/logger";
 import { ICredentials, IInputs, IProperties, InputProps } from "../interface/interface";
 import { INVOKE } from "../help/invoke";
-import { extendFunctionInfos, getFunctionClient, handlerUrn } from "../utils/util";
+import { extendFunctionInfos, getFunctionClient, handlerErrorMsg, handlerUrn } from "../utils/util";
 import { FunctionClient } from "../clients/function.client";
 import { EventService } from "./event.service";
 import { InvokeFunctionRequest } from "@huaweicloud/huaweicloud-sdk-functiongraph";
@@ -22,7 +22,7 @@ export class InvokeService {
     public async handleInputs(inputs: InputProps): Promise<IInputs> {
         logger.debug(`inputs.props: ${JSON.stringify(inputs.props)}`);
         if (!inputs?.credentials?.AccessKeyID || !inputs?.credentials?.SecretAccessKey) {
-            throw new Error("Havn't set huaweicloud credentials. Run $s config add .");
+            handlerErrorMsg(this.spin, logger, "Havn't set huaweicloud credentials. Run $s config add .");
         }
 
         const parsedArgs: { [key: string]: any } = commandParse(inputs, {
@@ -56,11 +56,11 @@ export class InvokeService {
         };
 
         if (!endProps.region) {
-            throw new Error("Region not found. Please specify with --region");
+            handlerErrorMsg(this.spin, logger, "Region not found. Please specify with --region");
         }
 
         if (!endProps.functionName) {
-            throw new Error("Function Name not found. Please specify with --function-name.");
+            handlerErrorMsg(this.spin, logger, "Function Name not found. Please specify with --function-name.");
         }
 
         const credentials: ICredentials = inputs.credentials;

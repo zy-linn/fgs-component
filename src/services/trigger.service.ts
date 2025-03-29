@@ -6,6 +6,7 @@ import {
     DeleteFunctionTriggerRequest,
     DeleteFunctionTriggerRequestTriggerTypeCodeEnum,
     ListFunctionTriggersRequest,
+    TriggerEventDataRequestBody,
     UpdateTriggerRequest,
     UpdateTriggerRequestBody,
     UpdateTriggerRequestTriggerTypeCodeEnum
@@ -246,7 +247,7 @@ export class Trigger {
     async getCreateRequest(urn = ''): Promise<CreateFunctionTriggerRequest> {
         const eventData = await this.getEventData();
         const body = new CreateFunctionTriggerRequestBody()
-            .withEventData(eventData)
+            .withEventData(eventData as TriggerEventDataRequestBody)
             .withTriggerStatus(this.triggerInfo.status as CreateFunctionTriggerRequestBodyTriggerStatusEnum)
             .withEventTypeCode(this.triggerInfo.eventTypeCode)
             .withTriggerTypeCode(this.triggerInfo.triggerTypeCode as CreateFunctionTriggerRequestBodyTriggerTypeCodeEnum);
