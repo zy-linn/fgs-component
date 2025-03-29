@@ -1,6 +1,6 @@
 {
   "name": "ServerlessDevsComponent",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "This is a component demo for Serverless Devs Tool ",
   "autoInstall": false,
   "homepage": "https://www.serverless-devs.com",
@@ -28,7 +28,7 @@
   },
   "dependencies": {
     "@huaweicloud/huaweicloud-sdk-core": "^3.1.18",
-    "@huaweicloud/huaweicloud-sdk-functiongraph": "^3.1.18",
+    "@huaweicloud/huaweicloud-sdk-functiongraph": "^3.1.142",
     "@huaweicloud/huaweicloud-sdk-iam": "^3.1.18",
     "@serverless-devs/core": "^0.1.48",
     "axios": "^1.6.7",

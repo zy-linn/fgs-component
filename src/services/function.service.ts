@@ -42,10 +42,11 @@ import {
 type RequestBody = UpdateFunctionConfigRequestBody | CreateFunctionRequestBody;
 
 export class FunctionService {
+  // 会在判断函数是否存在时进行更新
   private metaData: any;
   private spin = spinner();
 
-  constructor() {}
+  constructor() { }
 
   /**
    * 部署函数
@@ -99,8 +100,7 @@ export class FunctionService {
     } catch (error) {
       this.spin.fail(`Delete function [${functionName}] failed.`);
       logger.error(
-        `Delete function [${functionName}] failed. err=${
-          (error as Error).message
+        `Delete function [${functionName}] failed. err=${(error as Error).message
         }`
       );
       throw error;
@@ -118,7 +118,7 @@ export class FunctionService {
       .withPackage(functionInfo.package || "default")
       .withRuntime(
         (functionInfo.runtime as CreateFunctionRequestBodyRuntimeEnum) ||
-          "Node.js14.18"
+        "Node.js14.18"
       )
       .withCodeType(
         (functionInfo.codeType ||
@@ -167,8 +167,7 @@ export class FunctionService {
     } catch (error) {
       this.spin.fail(`Create function [${functionInfo.functionName}] failed.`);
       logger.error(
-        `Create function [${functionInfo.functionName}] failed. err=${
-          (error as Error).message
+        `Create function [${functionInfo.functionName}] failed. err=${(error as Error).message
         }`
       );
       throw error;
@@ -184,10 +183,12 @@ export class FunctionService {
     client: FunctionGraphClient,
     config: IFunctionResult
   ) {
-    if (!props.type || props.type === "code") {
+    // type字段来源命令行参数， updateType来源于配置
+    const updateType = props.type ?? props.updateType;
+    if (!updateType || updateType === "code") {
       await this.updateCode(props, client, config);
     }
-    if (!props.type || props.type === "config") {
+    if (!updateType || updateType === "config") {
       await this.updateConfig(props, client, config);
     }
     return config;
@@ -213,7 +214,7 @@ export class FunctionService {
         .withCodeType(
           (props.function
             .codeType as UpdateFunctionCodeRequestBodyCodeTypeEnum) ??
-            config.code_type
+          config.code_type
         )
         .withDependVersionList(
           props.function.dependVersionList ?? config.depend_version_list
@@ -252,8 +253,7 @@ export class FunctionService {
         `Update code of function [${props.function.functionName}] failed.`
       );
       logger.error(
-        `Update code of function [${props.function.functionName}] failed. err=${
-          (error as Error).message
+        `Update code of function [${props.function.functionName}] failed. err=${(error as Error).message
         }`
       );
       throw error;
@@ -297,8 +297,7 @@ export class FunctionService {
         `Update configurations of function [${props.function.functionName}] failed.`
       );
       logger.error(
-        `Update configurations of function [${
-          props.function.functionName
+        `Update configurations of function [${props.function.functionName
         }] failed. err=${(error as Error).message}`
       );
       throw error;
@@ -456,7 +455,7 @@ export class FunctionService {
     networkController.withDisablePublicNetwork(
       Boolean(
         newData?.networkController?.disablePublicNetwork ??
-          oldData?.network_controller?.disable_public_network
+        oldData?.network_controller?.disable_public_network
       )
     );
     const vpcs = newData?.networkController?.triggerAccessVpcs?.map((v) => ({
@@ -489,8 +488,8 @@ export class FunctionService {
     try {
       body.withUserData(
         JSON.stringify(newData?.userData ?? newData?.environmentVariables) ??
-          oldData.user_data ??
-          "{}"
+        oldData.user_data ??
+        "{}"
       );
       if (!this.isUpdate(body, oldData)) {
         return;
@@ -533,9 +532,11 @@ export class FunctionService {
    */
   private setLogConfig(
     body: RequestBody,
-    newData: LogConfig,
+    newData: IFunctionProps,
     oldData?: IFunctionResult
   ) {
+    this.setEnableLog(body, newData);
+    this.setLogTag(body, newData, oldData);
     if (
       !(newData?.ltsGroupId ?? oldData?.log_group_id) ||
       !(newData?.ltsStreamId ?? oldData?.log_stream_id) ||
@@ -609,7 +610,7 @@ export class FunctionService {
     urn: string,
     tags: KvItem[],
     client: FunctionGraphClient
-  ) { 
+  ) {
     logger.debug(`delete tags [${JSON.stringify(tags)}].`);
     if (tags.length === 0) {
       return;
@@ -631,7 +632,10 @@ export class FunctionService {
     return config !== undefined;
   }
 
-  private async handlerTags(props: IProperties, client: FunctionGraphClient): Promise<Array<KvItem>> {
+  private async handlerTags(
+    props: IProperties,
+    client: FunctionGraphClient
+  ): Promise<Array<KvItem>> {
     const serviceName = props.service?.name;
     let propTags = props.function.tags ?? {};
     if (serviceName && !propTags[serviceName]) {
@@ -642,14 +646,14 @@ export class FunctionService {
     logger.debug(`get tags [${JSON.stringify(tags)}].`);
     if (tags.length > 0) { // 如果标签存在，先删除
       await this.deleteTags(props.urn, tags, client);
-    } 
+    }
     if (isMerge) {
       // 获取已有标签并用配置的覆盖
-      tags.filter(({key})=> !propTags[key]).forEach(({key, value}) => {
+      tags.filter(({ key }) => !propTags[key]).forEach(({ key, value }) => {
         propTags[key] = value;
       });
     }
-    
+
     return Object.keys(propTags).map(key => new KvItem().withKey(key).withValue(propTags[key]));
   }
 }
