@@ -60,7 +60,8 @@ export class FunctionService {
         throw new Error("First configure the function in s.yml.");
       }
       if (
-        (!props.function.agencyName && !props.function.xrole) &&
+        !props.function.agencyName &&
+        !props.function.xrole &&
         (props.function.vpcId || props.function.subnetId)
       ) {
         throw new Error("First configure the function agency in s.yml.");
@@ -240,7 +241,7 @@ export class FunctionService {
         `Code of function [${props.function.functionName}] updated.`
       );
     } catch (error) {
-      if (error?.errorCode === 'FSS.0409') {
+      if (error?.errorCode === "FSS.0409") {
         logger.debug(
           `Same code, no need update code for funtion [${props.function.functionName}].`
         );
@@ -594,7 +595,7 @@ export class FunctionService {
       req.withBody(body);
       await client.createTags(req);
     } catch (error) {
-      logger.debug('Create tags failed.' + JSON.stringify(error));
+      logger.debug("Create tags failed." + JSON.stringify(error));
       return;
     }
   }
@@ -641,19 +642,59 @@ export class FunctionService {
     if (serviceName && !propTags[serviceName]) {
       propTags[serviceName] = serviceName;
     }
-    const isMerge = props.function?.tagPolicy?.toLocaleLowerCase() === 'merge';
-    const { tags = [] } = await this.getTags(props.urn, client);
+
+    if (Object.keys(propTags).length === 0) {
+      // 没有配置标签
+      return [];
+    }
+    const isMerge = props.function?.tagPolicy?.toLocaleLowerCase() === "merge";
+    const tags = ((await this.getTags(props.urn, client)) ?? {}).tags ?? [];
     logger.debug(`get tags [${JSON.stringify(tags)}].`);
-    if (tags.length > 0) { // 如果标签存在，先删除
+    if (tags.length > 0) {
+      // 如果标签存在，先删除
       await this.deleteTags(props.urn, tags, client);
     }
     if (isMerge) {
       // 获取已有标签并用配置的覆盖
-      tags.filter(({ key }) => !propTags[key]).forEach(({ key, value }) => {
-        propTags[key] = value;
-      });
+      tags
+        .filter(({ key }) => !propTags[key])
+        .forEach(({ key, value }) => {
+          propTags[key] = value;
+        });
     }
 
-    return Object.keys(propTags).map(key => new KvItem().withKey(key).withValue(propTags[key]));
+    return Object.keys(propTags).map((key) =>
+      new KvItem().withKey(key).withValue(propTags[key])
+    );
+  }
+
+  /**
+   * 设置日志标签：1.不传或空对象会将日志标签置空；2. 全量替换
+   * @param body
+   * @param newData
+   */
+  private setLogTag(
+    body: RequestBody,
+    newData: IFunctionProps,
+    oldData?: IFunctionResult
+  ) {
+    const logEnable =
+      newData.enableLtsLog === true ||
+      (newData.enableLtsLog === undefined && oldData?.enable_lts_log === true);
+    if (logEnable && newData.ltsCustomTag) {
+      logger.debug(`log tag: ${newData.ltsCustomTag}`);
+      body.withLtsCustomTag(newData.ltsCustomTag);
+    }
+  }
+
+  /**
+   * 设置日志开启标志, 不传时会维持旧值
+   * @param body
+   * @param newData
+   */
+  private setEnableLog(body: RequestBody, newData: IFunctionProps) {
+    if (newData.enableLtsLog !== undefined) {
+      body.withEnableLtsLog(newData.enableLtsLog);
+    }
   }
 }
