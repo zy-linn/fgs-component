@@ -131,7 +131,6 @@ export class FunctionService {
     this.setNetConfig(body, functionInfo);
     this.setEnvConfig(body, functionInfo);
     this.setLogConfig(body, functionInfo);
-    this.setLogTag(body, functionInfo);
     this.setAdvancedConfig(body, functionInfo);
     functionInfo.dependVersionList &&
       body.withDependVersionList(functionInfo.dependVersionList);
@@ -186,10 +185,12 @@ export class FunctionService {
     client: FunctionGraphClient,
     config: IFunctionResult
   ) {
-    if (!props.type || props.type === "code") {
+    // type字段来源命令行参数， updateType来源于配置
+    const updateType = props.type ?? props.updateType;
+    if (!updateType || updateType === "code") {
       await this.updateCode(props, client, config);
     }
-    if (!props.type || props.type === "config") {
+    if (!updateType || updateType === "config") {
       await this.updateConfig(props, client, config);
     }
     return config;
@@ -379,7 +380,6 @@ export class FunctionService {
     this.setEnvConfig(body, functionInfo, config);
     this.setConcurrenyConfig(body, functionInfo, config);
     this.setLogConfig(body, functionInfo, config);
-    this.setLogTag(body, functionInfo);
     this.setAdvancedConfig(body, functionInfo, config);
     return body;
   }
@@ -528,9 +528,11 @@ export class FunctionService {
    */
   private setLogConfig(
     body: RequestBody,
-    newData: LogConfig,
+    newData: IFunctionProps,
     oldData?: IFunctionResult
   ) {
+    this.setEnableLog(body, newData);
+    this.setLogTag(body, newData, oldData);
     if (
       !(newData?.ltsGroupId ?? oldData?.log_group_id) ||
       !(newData?.ltsStreamId ?? oldData?.log_stream_id) ||
@@ -652,10 +654,28 @@ export class FunctionService {
    * @param body
    * @param newData
    */
-  private setLogTag(body: RequestBody, newData: IFunctionProps) {
-    if (newData.ltsCustomTag) {
+  private setLogTag(
+    body: RequestBody,
+    newData: IFunctionProps,
+    oldData?: IFunctionResult
+  ) {
+    const logEnable =
+      newData.enableLtsLog === true ||
+      (newData.enableLtsLog === undefined && oldData?.enable_lts_log === true);
+    if (logEnable && newData.ltsCustomTag) {
       logger.debug(`log tag: ${newData.ltsCustomTag}`);
       body.withLtsCustomTag(newData.ltsCustomTag);
+    }
+  }
+
+  /**
+   * 设置日志开启标志, 不传时会维持旧值
+   * @param body
+   * @param newData
+   */
+  private setEnableLog(body: RequestBody, newData: IFunctionProps) {
+    if (newData.enableLtsLog !== undefined) {
+      body.withEnableLtsLog(newData.enableLtsLog);
     }
   }
 }

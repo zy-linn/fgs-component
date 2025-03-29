@@ -21,7 +21,8 @@ export interface IFunctionProps
   userData?: any;
   encryptedUserData?: any;
   extend?: { [prop: string]: any }; // 扩展字段
-  ltsCustomTag: {[key: string]: string};
+  ltsCustomTag?: { [key: string]: string };
+  enableLtsLog?: boolean;
 }
 
 export interface BasicConfig {
@@ -119,6 +120,8 @@ export interface IFunctionResult {
   log_group_id: string;
   log_stream_id: string;
   enable_dynamic_memory: boolean;
+  enable_lts_log: boolean;
+  lts_custom_tag: { [key: string]: string };
 }
 
 export interface IFuncCode {
